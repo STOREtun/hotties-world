@@ -26,7 +26,7 @@ public class Level : MonoBehaviour {
         int sprIndex = Mathf.Clamp(currentObjectiveIndex, 0, objectiveSprites.Length-1);
         main.ui.currentObjectivePanel.GetComponent<Image>().sprite = objectiveSprites[sprIndex];
 
-        
+
         for (int i = 0; i <= currentObjectiveIndex && i < objectiveSprites.Length; i++) {
             main.ui.objectivePanels[i].GetComponent<Image>().sprite = objectiveSprites[i];
         }
@@ -45,7 +45,7 @@ public class Level : MonoBehaviour {
     }
 
     //public GameObject[] levels;
-    
+
 
     //public GameObject loadLevel(int levelIndex) {
     //    if (levelIndex < 0 || levelIndex >= levels.Length)
@@ -54,10 +54,10 @@ public class Level : MonoBehaviour {
     //    levelObj.SetActive(true);
     //    return levelObj;
     //}
-    
-    
-    
-    
+
+
+
+
     //private Camera cam;
 
     //GameObject level;
@@ -76,7 +76,7 @@ public class Level : MonoBehaviour {
     //    //GameObject o = Instantiate(levels[Global.instance.currentLevelIndex], curcampos, Quaternion.identity) as GameObject;
     //    level = Instantiate(levels[Global.instance.currentLevelIndex], levels[Global.instance.currentLevelIndex].transform.position, Quaternion.identity) as GameObject;
 
-        
+
     //}
 
 
@@ -89,7 +89,7 @@ public class Level : MonoBehaviour {
     //    }
 
 
-    //    //camera movement 
+    //    //camera movement
     //    lerpTimer += (LERP_SPEED * Time.deltaTime);
     //    if (lerpTimer < 1) {
     //        Vector3 lerp = Vector3.Lerp(cam.transform.position, lerpPos, lerpTimer);

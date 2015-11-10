@@ -3,8 +3,6 @@ using System.Collections;
 using UnityEngine.UI;
 
 public class UI : MonoBehaviour {
-
-
     public GameObject currentObjectivePanel; //set by inspector
     public GameObject[] objectivePanels; //set by inspector
     public GameObject[] objectiveCheckmarkPanels; //set by inspector
@@ -15,6 +13,7 @@ public class UI : MonoBehaviour {
 
     public GameObject notebookOverlayCanvas;
     public GameObject notebookObjectiveDescriptionText;
+    public GameObject notebookHUDCanvas;
 
     public GameObject notebookObjectiveTabPanel;
     public GameObject notebookHelpTabPanel;
@@ -50,6 +49,7 @@ public class UI : MonoBehaviour {
         toggleNotebook(NotebookMode.OPTIONS_TAB);
     }
 
+    //Could show latest menu instead of always showing the options
     public void showMenu(bool show) {
         showNotebook(NotebookMode.OPTIONS_TAB, true);
     }
@@ -66,6 +66,7 @@ public class UI : MonoBehaviour {
         showNotebook(mode, !notebookOverlayCanvas.activeSelf);
     }
     public void showNotebook(NotebookMode mode, bool show) {
+
         notebookMode = show ? mode : NotebookMode.CLOSED;
         notebookOverlayCanvas.SetActive(show);
         if (show) {
@@ -81,12 +82,13 @@ public class UI : MonoBehaviour {
             notebookWorldmapHolderPanel.SetActive(mode == NotebookMode.WORLDMAP_TAB);
             notebookOptionsHolderPanel.SetActive(mode == NotebookMode.OPTIONS_TAB);
 
-
             notebookRibbonHolderPanel.SetActive(mode == NotebookMode.OBJECTIVE_TAB); //only show when objective tab
             notebookCaptionText.GetComponent<Text>().text = main.level.objectiveCaptionText;
 
             notebookButtonPanel.SetActive(false);
+            notebookHUDCanvas.SetActive(false);
 
+            //Could be a switch statement instead of this if-else, but whatever
             if (mode == NotebookMode.OBJECTIVE_TAB) {
                 if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.objectiveDescriptionTexts.Length) {
                     //rule: when index in range, it means player is still searching for hidden objects
@@ -117,19 +119,17 @@ public class UI : MonoBehaviour {
                 notebookButtonPanel.SetActive(true);
             }
 
-        }
+        }else notebookHUDCanvas.SetActive(true);
 
 
     }
 
-
 	// Use this for initialization
 	void Awake () {
-        main = FindObjectOfType<Main>();
+    main = FindObjectOfType<Main>();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
-	
 	}
 }

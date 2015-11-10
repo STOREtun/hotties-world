@@ -33,7 +33,7 @@ public class GameScene : MonoBehaviour {
 
     void Start() {
         lerpPos = cam.transform.position;
-        
+
         //load level prefab component
         main.loadLevel(Global.instance.currentLevelIndex);
         if (Global.instance.currentHiddenIndex < 0 || Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length)
@@ -71,7 +71,7 @@ public class GameScene : MonoBehaviour {
 
     private void pannedHandler(object sender, EventArgs e) {
         PanGesture gesture = (PanGesture)sender;
-        
+
         //check for UI objects
         tmpPointer.position = gesture.ScreenPosition; //gui is in screen pos, not world pos
         tmpRaycastResults.Clear(); //reset previous results
@@ -92,7 +92,6 @@ public class GameScene : MonoBehaviour {
                     //Debug.Log("test: min=" + o.GetComponent<Renderer>().bounds.min.y + " max=" + o.GetComponent<Renderer>().bounds.max.y);
 //                    Debug.Log(t.gameObject.name);
 //                    Debug.Log(t.gameObject.transform.localPosition); //use scrolling to component position
-
 
                     if (t.gameObject.name == "Objective001001Panel") {
                         t.gameObject.SetActive(false);
@@ -233,7 +232,7 @@ public class GameScene : MonoBehaviour {
         }
 
 
-        //check if we hit hidden object 
+        //check if we hit hidden object
         ITouchHit hit;
         gesture.GetTargetHitResult(out hit);
         Vector3 vec = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
@@ -258,7 +257,7 @@ public class GameScene : MonoBehaviour {
                 }
             }
         }
-        
+
     }
 
 
@@ -278,7 +277,7 @@ public class GameScene : MonoBehaviour {
         //}
 
 
-        //camera movement 
+        //camera movement
         lerpTimer += (LERP_SPEED * Time.deltaTime);
         if (lerpTimer <= 1) {
             Vector3 lerp = Vector3.Lerp(cam.transform.position, lerpPos, lerpTimer);
@@ -327,7 +326,7 @@ public class GameScene : MonoBehaviour {
         lerp.y = Mathf.Clamp(lerp.y, mincamy, maxcamy);
         lerpPos = lerp;
         lerpPos.z = cam.transform.position.z;
-        
+
         lerpTimer = 0;
     }
 
