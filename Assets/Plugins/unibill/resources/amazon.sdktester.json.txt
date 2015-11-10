@@ -1,0 +1,1 @@
+{"com.huusmann.hottiesworld.smallhintpack5hints":{"itemType":"CONSUMABLE", "title":"Small hint pack", "description":"5 extra hints", "price":0.99, "smallIconUrl":"http://example.com"}, "com.huusmann.hottiesworld.largehintpack20hints":{"itemType":"CONSUMABLE", "title":"Large hint pack", "description":"20 extra hints", "price":0.99, "smallIconUrl":"http://example.com"}}

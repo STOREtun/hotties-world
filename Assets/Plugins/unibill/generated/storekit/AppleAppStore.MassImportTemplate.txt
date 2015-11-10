@@ -1,0 +1,3 @@
+SKU	Product ID	Reference Name	Type	Cleared For Sale	Wholesale Price Tier	Displayed Name	Description	Screenshot Path
+HottiesWorld	com.huusmann.hottiesworld.smallhintpack5hints	Small hint pack	Consumable	yes	3	Small hint pack	5 extra hints	
+HottiesWorld	com.huusmann.hottiesworld.largehintpack20hints	Large hint pack	Consumable	yes	1	Large hint pack	20 extra hints	
