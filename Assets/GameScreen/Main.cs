@@ -52,10 +52,12 @@ public class Main : MonoBehaviour {
 
     [HideInInspector]
     public GameObject levelObj = null;
+
     [HideInInspector]
     public Level level = null;
 
     public GameObject uiObj; //set by inspector
+
     [HideInInspector]
     public UI ui = null;
 

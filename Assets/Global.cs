@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Soomla.Store;
 
 
 //man maa sno sig sagde slangen

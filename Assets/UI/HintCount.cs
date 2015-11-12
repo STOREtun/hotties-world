@@ -6,12 +6,12 @@ public class HintCount : MonoBehaviour {
 
     private int hintCount = -1;
 
-	
+
 	void Update () {
-        if (hintCount != Global.instance.iapManager.getHints()) {
-            hintCount = Global.instance.iapManager.getHints();
-            updateHintCountText();
-        }
+        // if (hintCount != Global.instance.iapManager.getHints()) {
+        //     hintCount = Global.instance.iapManager.getHints();
+        //     updateHintCountText();
+        // }
 	}
 
     private void updateHintCountText() {

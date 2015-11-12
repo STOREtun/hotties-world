@@ -163,8 +163,9 @@ public class GameScene : MonoBehaviour {
                     return;
                 }
                 if (res.gameObject.name == "BuyButton") {
-                    IAPItem iapItem = res.gameObject.GetComponentInParent<IAPItem>();
-                    Global.instance.iapManager.initiatePurchase(iapItem.iapIdentifierString);
+                    Debug.Log("GameScene, TODO: add buying options");
+                    // IAPItem iapItem = res.gameObject.GetComponentInParent<IAPItem>();
+                    // Global.instance.iapManager.initiatePurchase(iapItem.iapIdentifierString);
                 }
                 if (res.gameObject.name == "CurrentObjectivePanel") {
                     //open objective overlay
@@ -212,7 +213,8 @@ public class GameScene : MonoBehaviour {
                         Application.LoadLevel("WorldMap");
                 } else if (main.ui.notebookMode == UI.NotebookMode.OPTIONS_TAB) {
                     if (res.gameObject.name == "ShopPanel") {
-                        Debug.Log("TODO: open shop");
+                        main.ui.toggleMenu();
+                        //main.ui.iapCanvas.SetActive(true);
                     }
                     if (res.gameObject.name == "QuitPanel") {
                         Application.LoadLevel("WorldMap");

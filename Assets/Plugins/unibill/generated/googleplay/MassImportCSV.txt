@@ -1,3 +1,0 @@
-Product ID,Published State,Purchase Type,Auto Translate,Locale; Title; Description,Auto Fill Prices,Price
-com.huusmann.hottiesworld.smallhintpack5hints,published,managed_by_android,false,"en_US;Small hint pack;5 extra hints",true,1000000
-com.huusmann.hottiesworld.largehintpack20hints,published,managed_by_android,false,"en_US;Large hint pack;20 extra hints",true,3000000
