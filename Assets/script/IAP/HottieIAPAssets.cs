@@ -36,12 +36,12 @@ namespace Soomla.Store{
 
     /** static final members **/
     public const string HINTS_SMALL_PRODUCT_ID = "com.huusmann.hottiesworld.smallhintpack5hints"; //Must match the InApp purchase ID
-    public const string HINTS_LARGE_PRODUCT_ID = "com.huusmann.hottiesworld.largehintpack20hints";
+    public const string HINTS_LARGE_PRODUCT_ID = "com.huusmann.hottiesworld.largehintpack20hints"; 
 
     /** Virtual Goods **/
     public static VirtualGood HINTS_SMALL_PACK = new SingleUseVG(
       "Small hints pack",
-      "This gives 10 hints",
+      "This gives 5 hints",
       "hints_small_id",
       new PurchaseWithMarket(HINTS_SMALL_PRODUCT_ID, 9)
     );
@@ -52,12 +52,6 @@ namespace Soomla.Store{
       "hints_large_id",
       new PurchaseWithMarket(HINTS_LARGE_PRODUCT_ID, 18)
     );
-
-    /** Custom methods **/
-    public enum products{
-        hints_small_id,
-        hints_large_id
-    }
 
   }
 }

@@ -56,7 +56,8 @@ public class UI : MonoBehaviour {
 
 
     public void showShop(bool show) {
-        iapCanvas.SetActive(show);
+      Debug.Log("-----------  UI, showShop: " + show);
+      iapCanvas.SetActive(show);
     }
 
     public enum NotebookMode { CLOSED, OBJECTIVE_TAB, HELP_TAB, WORLDMAP_TAB, OPTIONS_TAB };

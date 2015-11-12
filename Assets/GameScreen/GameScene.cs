@@ -157,15 +157,16 @@ public class GameScene : MonoBehaviour {
                     main.ui.toggleMenu();
                     return;
                 }
-                if (res.gameObject.name == "ShopButton") {
+                if (res.gameObject.name == "ShopButton") { // Is this used?
                     main.ui.showMenu(false);
                     main.ui.showShop(true);
                     return;
                 }
                 if (res.gameObject.name == "BuyButton") {
-                    Debug.Log("GameScene, TODO: add buying options");
+                    //Debug.Log("GameScene, TODO: add buying options");
                     // IAPItem iapItem = res.gameObject.GetComponentInParent<IAPItem>();
                     // Global.instance.iapManager.initiatePurchase(iapItem.iapIdentifierString);
+                    Global.instance.iapManager.buyItem(res.gameObject.tag, res.gameObject.tag);
                 }
                 if (res.gameObject.name == "CurrentObjectivePanel") {
                     //open objective overlay
@@ -214,7 +215,7 @@ public class GameScene : MonoBehaviour {
                 } else if (main.ui.notebookMode == UI.NotebookMode.OPTIONS_TAB) {
                     if (res.gameObject.name == "ShopPanel") {
                         main.ui.toggleMenu();
-                        //main.ui.iapCanvas.SetActive(true);
+                        main.ui.iapCanvas.SetActive(true);
                     }
                     if (res.gameObject.name == "QuitPanel") {
                         Application.LoadLevel("WorldMap");
