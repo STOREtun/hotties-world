@@ -7,6 +7,8 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityConstants;
+using Soomla.Store;
+using SimpleJSON;
 
 public class GameScene : MonoBehaviour {
 
@@ -45,7 +47,13 @@ public class GameScene : MonoBehaviour {
         main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
 
         //show notebook with objective
-        main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
+        //main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
+        // show the popupOverlay
+        string currentObjectiveText = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex];
+        main.ui.showPopupObjectiveWithText(currentObjectiveText);
+
+        // Soomla store event listeners.
+        StoreEvents.OnMarketPurchase += onMarketPurchase;
     }
 
 
@@ -70,6 +78,8 @@ public class GameScene : MonoBehaviour {
     //*********************************************************************
 
     private void pannedHandler(object sender, EventArgs e) {
+        // check if in menu! Disable panned
+
         PanGesture gesture = (PanGesture)sender;
 
         //check for UI objects
@@ -137,13 +147,19 @@ public class GameScene : MonoBehaviour {
 //        Debug.Log("FLICKED to=" + worldPos);
 //    }
     private void tappedHandler(object sender, EventArgs e) {
-        Debug.Log("TAPPED");
         TapGesture gesture = (TapGesture)sender;
 
         //check for UI objects
         tmpPointer.position = gesture.ScreenPosition; //gui is in screen pos, not world pos
         tmpRaycastResults.Clear(); //reset previous results
         EventSystem.current.RaycastAll(tmpPointer, tmpRaycastResults);
+        if(tmpRaycastResults.Count <= 0){ //If no ui object was hit - close all menu elements and show the gamescene
+          main.ui.showMenu(false);
+          main.ui.showShop(false);
+          main.ui.showHUD(true);
+          // return;
+        }
+
         foreach (RaycastResult res in tmpRaycastResults) {
             //yet another workaround .. so apparantly raycast masking (see UIButtonRaycastMask) on gui doesnt work for EventSystem.current.RaycastAll
             UIButtonRaycastMask uiButtonRaycastMask = res.gameObject.GetComponent<UIButtonRaycastMask>();
@@ -152,40 +168,51 @@ public class GameScene : MonoBehaviour {
                 hitAccepted = false;
             if (hitAccepted) {
                 Debug.Log("RAYUIHIT name=" + res.gameObject.name + " tag=" + res.gameObject.tag);
-                if (res.gameObject.name == "MenuButton") {
-                    main.ui.showShop(false);
-                    main.ui.toggleMenu();
+                string pressedObject = res.gameObject.name;
+                if(pressedObject == "CurrentObjectivePanel"){
+                  main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
+                  return;
+                }
+                if (pressedObject == "Menu") { // for some reason it does not reach the 'MenuButton', but Menu works just fine
+                    main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
                     return;
-                }
-                if (res.gameObject.name == "ShopButton") { // Is this used?
-                    main.ui.showMenu(false);
-                    main.ui.showShop(true);
-                    return;
-                }
-                if (res.gameObject.name == "BuyButton") {
-                    //Debug.Log("GameScene, TODO: add buying options");
-                    // IAPItem iapItem = res.gameObject.GetComponentInParent<IAPItem>();
-                    // Global.instance.iapManager.initiatePurchase(iapItem.iapIdentifierString);
-                    Global.instance.iapManager.buyItem(res.gameObject.tag, res.gameObject.tag);
-                }
-                if (res.gameObject.name == "CurrentObjectivePanel") {
+                }else if(pressedObject == "ClosePopupOverlayButton"){
+                  main.ui.hidePopupObjective();
+                }else if (pressedObject == "SmallHintPack") {
+                  Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_SMALL_PRODUCT_ID, "");
+                  Global.instance.reloadNumberOfHints();
+                  //print("GameScene, TODO: buy small hint pack");
+                    // main.ui.showMenu(false);
+                    // main.ui.showShop(true);
+                    // return;
+                }else if(pressedObject == "BigHintPack"){
+                  Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_LARGE_PRODUCT_ID, "");
+                  Global.instance.reloadNumberOfHints();
+                  //print("GameScene, TODO: buy big hint pack");
+                }else if (pressedObject == "BuyButton") {
+                  Global.instance.iapManager.buyItem(res.gameObject.tag, "not_used"); //Payload (second argument) should not be used like this
+                }else if (pressedObject == "CurrentObjectivePanel") {
                     //open objective overlay
-                    main.ui.toggleNotebook(UI.NotebookMode.OBJECTIVE_TAB);
+                    //main.ui.toggleNotebook(UI.NotebookMode.OBJECTIVE_TAB);
                     //if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.objectiveDescriptionTexts.Length) {
                     //    main.ui.notebookObjectiveDescriptionText.GetComponent<Text>().text = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex];
                     //}
-                }
-                if (res.gameObject.name == "HintPanel") {
-                    if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.hiddenObjects.Length) {
-                        if (Global.instance.hintCount > 0) {
-                            GameObject hiddenGameObj = main.level.hiddenObjects[Global.instance.currentHiddenIndex];
-                            setLerpPos(hiddenGameObj.transform.position);
-                            Global.instance.hintCount--;
-                            main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
-                        } else {
-                            Debug.Log("TODO: open shop to get more hints");
-                        }
-                    }
+                }else if(res.gameObject.name == "QuitButton"){
+                  // reset the currentHiddenIndex to avoid skipping hidden objects in other levels
+                  Global.instance.currentHiddenIndex = 0;
+                  Application.LoadLevel("WorldMap");
+                }else if (pressedObject == "HintPanel") {
+                  if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.hiddenObjects.Length) {
+                      if (Global.instance.hintCount > 0) {
+                          GameObject hiddenGameObj = main.level.hiddenObjects[Global.instance.currentHiddenIndex];
+                          setLerpPos(hiddenGameObj.transform.position);
+                          Global.instance.hintCount--;
+                          Global.instance.updatePlayerPrefWithValue("hintcount", -1);
+                          main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
+                      } else {
+                          Debug.Log("TODO: open shop to get more hints");
+                      }
+                  }
                 }
                 //notebook ui hits
                 if (res.gameObject == main.ui.notebookObjectiveTabPanel) {
@@ -194,10 +221,48 @@ public class GameScene : MonoBehaviour {
                     main.ui.showNotebook(UI.NotebookMode.HELP_TAB, true);
                 } else if (res.gameObject == main.ui.notebookWorldmapTabPanel) {
                     main.ui.showNotebook(UI.NotebookMode.WORLDMAP_TAB, true);
+                    main.ui.WorldMapText.GetComponent<Text>().text = main.level.levelText;
                 } else if (res.gameObject == main.ui.notebookOptionsTabPanel) {
                     main.ui.showNotebook(UI.NotebookMode.OPTIONS_TAB, true);
+                }else if(res.gameObject == main.ui.closeMenuButton){
+                  main.ui.showNotebook(UI.NotebookMode.CLOSED, false);
                 }
+
                 if (main.ui.notebookMode == UI.NotebookMode.OBJECTIVE_TAB) {
+                    string text = "";
+                    int index = -1;
+                    if(pressedObject == "ObjectiveBig1Panel"){ // this could be generalized
+                      index = 0;
+                      text = main.level.objectiveDescriptionTexts[index];
+                      if(Global.instance.currentHiddenIndex >= index){
+                        main.ui.changeObjectiveTextTo(text);
+                      }
+                    }else if(pressedObject == "ObjectiveBig2Panel"){
+                      index = 1;
+                      text = main.level.objectiveDescriptionTexts[index];
+                      if(Global.instance.currentHiddenIndex >= index){
+                        main.ui.changeObjectiveTextTo(text);
+                      }
+                    }else if(pressedObject == "ObjectiveBig3Panel"){
+                      index = 2;
+                      text = main.level.objectiveDescriptionTexts[index];
+                      if(Global.instance.currentHiddenIndex >= index){
+                        main.ui.changeObjectiveTextTo(text);
+                      }
+                    }else if(pressedObject == "ObjectiveBig4Panel"){
+                      index = 3;
+                      text = main.level.objectiveDescriptionTexts[index];
+                      if(Global.instance.currentHiddenIndex >= index){
+                        main.ui.changeObjectiveTextTo(text);
+                      }
+                    }else if(pressedObject == "ObjectiveBig5Panel"){
+                      index = 4;
+                      text = main.level.objectiveDescriptionTexts[index];
+                      if(Global.instance.currentHiddenIndex >= index){
+                        main.ui.changeObjectiveTextTo(text);
+                      }
+                    }
+
                     if (res.gameObject == main.ui.notebookButtonPanel) {
                         if (Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length) {
                             //all objectives found
@@ -214,8 +279,8 @@ public class GameScene : MonoBehaviour {
                         Application.LoadLevel("WorldMap");
                 } else if (main.ui.notebookMode == UI.NotebookMode.OPTIONS_TAB) {
                     if (res.gameObject.name == "ShopPanel") {
-                        main.ui.toggleMenu();
                         main.ui.iapCanvas.SetActive(true);
+                        main.ui.toggleMenu();
                     }
                     if (res.gameObject.name == "QuitPanel") {
                         Application.LoadLevel("WorldMap");
@@ -252,7 +317,7 @@ public class GameScene : MonoBehaviour {
                     Global.instance.currentHiddenIndex++;
                     main.levelObj.GetComponent<Level>().setCurrentObjective(Global.instance.currentHiddenIndex);
                     if (Global.instance.currentHiddenIndex >= level.hiddenObjects.Length) {
-                        Debug.Log("TODO: Found all hidden objects .. doing uhm.. what next?");
+                        Global.instance.updateLevelProgression();
                     } else {
                         Debug.Log("Found hidden object, next hiddenObjectIndex=" + Global.instance.currentHiddenIndex);
                     }
@@ -260,7 +325,6 @@ public class GameScene : MonoBehaviour {
                 }
             }
         }
-
     }
 
 
@@ -334,6 +398,28 @@ public class GameScene : MonoBehaviour {
     }
 
 
+    /*
+      Soomla store events
+      They are kept here so IAPManager does not have to interact with UI elements.
 
+      onMarketPurchase handles the aftermath of a purchase. For some reason the ToString method does not
+      directly match the string ids and therefore the contains method was used.
+      Otherwise the implementation would use a switch case
+    */
+    public void onMarketPurchase(PurchasableVirtualItem pvi, string payload, Dictionary<string, string> extra) {
+      Debug.Log("GameScene, we are detecting a buy from within GameScene!");
 
+      JSONObject item = pvi.toJSONObject();
+      string itemIDString = item["itemId"].ToString();
+
+      if(itemIDString.Contains("hints_small_id")){
+        Global.instance.updatePlayerPrefWithValue("hintcount", 5);
+      }else if(itemIDString.Contains("hints_large_id")){
+        Global.instance.updatePlayerPrefWithValue("hintcount", 20);
+      }
+
+      main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
+      main.ui.showShop(false);
+      main.ui.showHUD(true);
+    }
 }

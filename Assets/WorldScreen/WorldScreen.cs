@@ -24,7 +24,7 @@ public class WorldScreen : MonoBehaviour {
     private readonly float MAX_ZOOM_MULTIPLIER = 2.5f;
     private readonly float LERP_ZOOM_TIME = 2f; //transition time for camera zoom effect
     private float lerpZoomTimer = 0; //timer 0..1 for lerp of camera zoom
-    
+
     private void OnEnable() {
         //register input handlers (aka listener aka callback)
         GetComponent<PanGesture>().Panned += pannedHandler;
@@ -45,21 +45,23 @@ public class WorldScreen : MonoBehaviour {
     }
 
     void Start() {
-
-
         //inititalize location points (show/hide accordingly)
         Global global = Global.instance;
         Locations locations = GetComponent<Locations>();
-        if (global.currentLevelIndex < 0) global.currentLevelIndex = 0;
+        if (global.completedLevels < 0) global.completedLevels = 0;
         Location currentLocation = null;
+        //print("WorldScreen, currentIndex: " + global.currentLevelIndex);
         for (int i = locations.locations.Length - 1; i >= 0; i--) {
             Location location = locations.locations[i].GetComponent<Location>();
             Location.LocationState locationState = Location.LocationState.LOCKED;
-            if (i > global.currentLevelIndex)
+
+            if (i > global.completedLevels)
                 locationState = Location.LocationState.LOCKED;
-            if (i < global.currentLevelIndex)
+
+            if (i < global.completedLevels)
                 locationState = Location.LocationState.OPEN;
-            if (i == global.currentLevelIndex) {
+
+            if (i == global.completedLevels) {
                 locationState = Location.LocationState.CURRENT;
                 currentLocation = location;
             }
@@ -67,17 +69,23 @@ public class WorldScreen : MonoBehaviour {
             location.state = locationState;
         }
 
-        
+
 
         //set camera to cover whole world
         //start camera move/zoom transition to current map location
         //currentLocation = locations.locations[4].GetComponent<Location>();
         if (currentLocation) {
-            state = State.TRANSITION_ZOOM;
-            setLerpPos(new Vector3(currentLocation.transform.position.x, currentLocation.transform.position.y, currentLocation.transform.position.z), 3f);
+            state = State.READY;
+            //state = State.TRANSITION_ZOOM;
+            GameObject currentObj = GameObject.FindWithTag("LOCATION_CURRENT");
+            Vector3 currentObjectivePos = currentObj.transform.position;
+            //print("WorldScreen, currentObjective.childCount: " + );
+            setLerpPos(currentObjectivePos, 3f);
+
+            //setLerpPos(new Vector3(currentLocation.transform.position.x, currentLocation.transform.position.y, currentLocation.transform.position.z), 3f);
         }
         //Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, -93.15f, Camera.main.transform.position.z);
-        
+
 
 
     }
@@ -86,6 +94,11 @@ public class WorldScreen : MonoBehaviour {
 
     private void pannedHandler(object sender, EventArgs e) {
         PanGesture gesture = (PanGesture)sender;
+        Vector3 worldPos = gesture.WorldTransformCenter;
+        Vector3 prevWorldPos = gesture.PreviousWorldTransformCenter;
+        Vector3 newWorldPos = lerpPos - (worldPos - prevWorldPos);
+        //Debug.Log("PANNED to=" + newWorldPos);
+        setLerpPos(newWorldPos, 0.1f);
     }
 
     private void tappedHandler(object sender, EventArgs e) {
@@ -98,19 +111,27 @@ public class WorldScreen : MonoBehaviour {
             Collider2D col = cols[i];
             Debug.Log("RAYHIT name=" + col.name + " tag=" + col.tag);
             if (col.gameObject.tag == UnityConstants.Tags.LOCATION_LOCATION) {
+
                 Locations locs = GetComponent<Locations>();
                 int index = Array.IndexOf(locs.locations, col.gameObject);
-                Debug.Log("tapped location " + index);
-                loadLevel(0);
-                break;
+
+                // checking whether the locked_flag is active or not = level open/closed
+                foreach(Transform child in col.gameObject.transform){
+                  string childName = child.gameObject.name;
+                  bool isLocked = child.gameObject.activeSelf;
+                  if(childName == "location_locked" && !isLocked){
+                    loadLevel(index);
+                    break;
+                  }
+
+                }
             }
         }
 
-        
+
     }
 
     void loadLevel(int level) {
-        Debug.Log("loading level " + level);
         Global.instance.currentLevelIndex = level;
         Application.LoadLevel("Game");
     }
@@ -118,9 +139,9 @@ public class WorldScreen : MonoBehaviour {
 
 
     void Update() {
-
+        //print("WorldScreen, lerpPos: " + lerpPos);
         if (state == State.READY) {
-            //camera movement 
+            //camera movement
             lerpTimer += (LERP_SPEED * Time.deltaTime);
             if (lerpTimer <= 1) {
                 //Debug.Log("camelerp timer=" + lerpTimer);
@@ -228,7 +249,7 @@ public class WorldScreen : MonoBehaviour {
 //                //Debug.Log(t.gameObject.name);
 //            }
 
-            
+
 //        }
 
 
@@ -288,5 +309,3 @@ public class WorldScreen : MonoBehaviour {
 //    //}
 
 //}
-
-

@@ -2,6 +2,10 @@
 using System.Collections;
 using UnityEngine.UI;
 
+/** Could remove iapCanvas, it is not used since the shop was moved into the
+notebook
+*/
+
 public class UI : MonoBehaviour {
     public GameObject currentObjectivePanel; //set by inspector
     public GameObject[] objectivePanels; //set by inspector
@@ -19,6 +23,7 @@ public class UI : MonoBehaviour {
     public GameObject notebookHelpTabPanel;
     public GameObject notebookWorldmapTabPanel;
     public GameObject notebookOptionsTabPanel;
+    public GameObject closeMenuButton;
     public Sprite notebookObjectiveSpriteFocus;
     public Sprite notebookObjectiveSpriteNonFocus;
     public Sprite notebookHelpSpriteFocus;
@@ -33,6 +38,8 @@ public class UI : MonoBehaviour {
     public GameObject notebookWorldmapHolderPanel;
     public GameObject notebookOptionsHolderPanel;
 
+    public GameObject WorldMapText;
+
     public GameObject notebookRibbonHolderPanel;
     public GameObject notebookCaptionText;
 
@@ -42,22 +49,41 @@ public class UI : MonoBehaviour {
     public GameObject notebookButtonPanel;
     public GameObject notebookButtonText;
 
+    public GameObject popupOverlay;
+    public GameObject popupText;
+
     private Main main = null;
 
+    public void showPopupObjectiveWithText(string text){
+      showMenu(false);
+      popupText.GetComponent<Text>().text = text;
+      popupOverlay.SetActive(true);
+    }
+
+    public void hidePopupObjective(){
+      popupOverlay.SetActive(false);
+    }
+
     public void toggleMenu() {
-        //showMenu(!menuPanel.activeSelf);
-        toggleNotebook(NotebookMode.OPTIONS_TAB);
+      //showMenu(!menuPanel.activeSelf);
+      toggleNotebook(NotebookMode.OPTIONS_TAB);
+    }
+
+    public void changeObjectiveTextTo(string newText){
+      notebookObjectiveDescriptionText.GetComponent<Text>().text = newText;
     }
 
     //Could show latest menu instead of always showing the options
     public void showMenu(bool show) {
-        showNotebook(NotebookMode.OPTIONS_TAB, true);
+      showNotebook(NotebookMode.OPTIONS_TAB, show);
     }
 
-
     public void showShop(bool show) {
-      Debug.Log("-----------  UI, showShop: " + show);
       iapCanvas.SetActive(show);
+    }
+
+    public void showHUD(bool show){
+      notebookHUDCanvas.SetActive(show);
     }
 
     public enum NotebookMode { CLOSED, OBJECTIVE_TAB, HELP_TAB, WORLDMAP_TAB, OPTIONS_TAB };
@@ -67,6 +93,7 @@ public class UI : MonoBehaviour {
         showNotebook(mode, !notebookOverlayCanvas.activeSelf);
     }
     public void showNotebook(NotebookMode mode, bool show) {
+        popupOverlay.SetActive(false); // make sure popup is closed
 
         notebookMode = show ? mode : NotebookMode.CLOSED;
         notebookOverlayCanvas.SetActive(show);
@@ -89,8 +116,8 @@ public class UI : MonoBehaviour {
             notebookButtonPanel.SetActive(false);
             notebookHUDCanvas.SetActive(false);
 
-            //Could be a switch statement instead of this if-else, but whatever
             if (mode == NotebookMode.OBJECTIVE_TAB) {
+                //print("UI, " + Global.instance.currentHiddenIndex + " >= 0 " + Global.instance.currentHiddenIndex + " < " + main.level.objectiveDescriptionTexts.Length);
                 if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.objectiveDescriptionTexts.Length) {
                     //rule: when index in range, it means player is still searching for hidden objects
                     string str = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex].Replace("\\n", "\n"); //yet another Unity workaround (inspector escapes the backslash, so we need to unescape it)
@@ -107,21 +134,24 @@ public class UI : MonoBehaviour {
                 for (int i = 0; i < notebookObjectiveCheckmarkPanels.Length; i++) {
                     notebookObjectiveCheckmarkPanels[i].SetActive(i <= Global.instance.currentHiddenIndex - 1);
                 }
-                notebookButtonText.GetComponent<Text>().text = (Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length ? "FINISH" : "PLAY");
-                notebookButtonPanel.SetActive(true);
-            } else if (mode == NotebookMode.HELP_TAB) {
-                notebookButtonText.GetComponent<Text>().text = "CLOSE";
-                notebookButtonPanel.SetActive(true);
-            } else if (mode == NotebookMode.WORLDMAP_TAB) {
-                notebookButtonText.GetComponent<Text>().text = "RETURN";
-                notebookButtonPanel.SetActive(true);
-            } else if (mode == NotebookMode.OPTIONS_TAB) {
-                notebookButtonText.GetComponent<Text>().text = "CLOSE";
-                notebookButtonPanel.SetActive(true);
-            }
+                // notebookButtonText.GetComponent<Text>().text = (Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length ? "FINISH" : "PLAY");
+                // notebookButtonPanel.SetActive(true);
+             } //else if (mode == NotebookMode.HELP_TAB) {
+            //     notebookButtonText.GetComponent<Text>().text = "CLOSE";
+            //     notebookButtonPanel.SetActive(true);
+            // } else if (mode == NotebookMode.WORLDMAP_TAB) {
+            //     notebookButtonText.GetComponent<Text>().text = "RETURN";
+            //     notebookButtonPanel.SetActive(true);
+            // } else if (mode == NotebookMode.OPTIONS_TAB) {
+            //     notebookButtonText.GetComponent<Text>().text = "CLOSE";
+            //     notebookButtonPanel.SetActive(true);
+            // }
 
-        }else notebookHUDCanvas.SetActive(true);
-
+        }else{
+          if(!iapCanvas.activeSelf){
+            notebookHUDCanvas.SetActive(true);
+          }
+        }
 
     }
 
