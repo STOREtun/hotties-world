@@ -15,7 +15,16 @@ public class Global  {
 
     public IAPManager iapManager = null;
 
-    private const int MAX_LEVELS = 1; // number of levels in the game (starting from 0)
+    private const int MAX_LEVELS = 1; // should get this number from main.levels.count
+
+    // the three minigames
+    public enum GameState{
+      FIND_HIDDEN_OBJECTS,
+      FEED_AGENTS,
+      CONSTRUCT_BUILDING,
+      FINSISHED
+    }
+	public GameState gameState = GameState.FIND_HIDDEN_OBJECTS;
 
     protected Global() {} //guarantee singleton
     private static Global _instance = null;
@@ -66,8 +75,7 @@ public class Global  {
         return null;
     }
 
-    /*
-      Maybe not the right place for manipulating data. But this way we keep custom
+    /** Maybe not the right place for manipulating data. But this way we keep custom
       manipulation of PlayerPrefs in one place.
     */
     public void updatePlayerPrefWithValue(string pref, int value){
@@ -85,12 +93,13 @@ public class Global  {
       hintCount = PlayerPrefs.GetInt("hintcount", hintCount);
     }
 
+    /** Method not yet finished. It should not be here. Global should not maniulate data
+    */
     public void updateLevelProgression(){
       if(currentLevelIndex >= completedLevels && currentLevelIndex < MAX_LEVELS){
-        updatePlayerPrefWithValue("completedLevels", 1);
-        completedLevels = PlayerPrefs.GetInt("completedLevels", 0);
+
+        //updatePlayerPrefWithValue("completedLevels", 1);
+        //completedLevels = PlayerPrefs.GetInt("completedLevels", 0);
       }
     }
-
-
 }

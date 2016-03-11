@@ -6,20 +6,22 @@ namespace UnityConstants
 {
     public static class Tags
     {
-        public const string Untagged = "Untagged";
-        public const string Respawn = "Respawn";
-        public const string Finish = "Finish";
-        public const string EditorOnly = "EditorOnly";
-        public const string MainCamera = "MainCamera";
-        public const string Player = "Player";
-        public const string GameController = "GameController";
-        public const string LOCATION_LOCKED = "LOCATION_LOCKED";
-        public const string LOCATION_OPEN = "LOCATION_OPEN";
-        public const string LOCATION_CURRENT = "LOCATION_CURRENT";
-        public const string LOCATION_WORLDMAP = "LOCATION_WORLDMAP";
-        public const string HIDDEN_OBJECT = "HIDDEN_OBJECT";
-        public const string LOCATION_LOCATION = "LOCATION_LOCATION";
+        public const string Untagged                = "Untagged";
+        public const string Respawn                 = "Respawn";
+        public const string Finish                  = "Finish";
+        public const string EditorOnly              = "EditorOnly";
+        public const string MainCamera              = "MainCamera";
+        public const string Player                  = "Player";
+        public const string GameController          = "GameController";
+        public const string LOCATION_LOCKED         = "LOCATION_LOCKED";
+        public const string LOCATION_OPEN           = "LOCATION_OPEN";
+        public const string LOCATION_CURRENT        = "LOCATION_CURRENT";
+        public const string LOCATION_WORLDMAP       = "LOCATION_WORLDMAP";
+        public const string HIDDEN_OBJECT           = "HIDDEN_OBJECT";
+        public const string LOCATION_LOCATION       = "LOCATION_LOCATION";
         public const string HIDDEN_OBJECT_CHECKMARK = "HIDDEN_OBJECT_CHECKMARK";
+        public const string HOTDOG_AGENT            = "HOTDOG_AGENT";
+        public const string SMOKE                   = "SMOKE";
     }
 
     public static class SortingLayers
@@ -51,4 +53,3 @@ namespace UnityConstants
         public const int WorldMap = 2;
     }
 }
-

@@ -7,15 +7,15 @@ public class Gestures : MonoBehaviour {
 
 
     private void OnEnable() {
-        GetComponent<PanGesture>().Panned += pannedHandler;
-        GetComponent<FlickGesture>().Flicked += flickedHandler;
-        GetComponent<TapGesture>().Tapped += tappedHandler;
+        GetComponent<PanGesture>().Panned     += pannedHandler;
+        GetComponent<FlickGesture>().Flicked  += flickedHandler;
+        GetComponent<TapGesture>().Tapped     += tappedHandler;
     }
 
     private void OnDisable() {
-        GetComponent<PanGesture>().Panned -= pannedHandler;
-        GetComponent<FlickGesture>().Flicked -= pannedHandler;
-        GetComponent<TapGesture>().Tapped -= tappedHandler;
+        GetComponent<PanGesture>().Panned     -= pannedHandler;
+        GetComponent<FlickGesture>().Flicked  -= pannedHandler;
+        GetComponent<TapGesture>().Tapped     -= tappedHandler;
     }
 
     private void pannedHandler(object sender, EventArgs e) {
@@ -23,8 +23,8 @@ public class Gestures : MonoBehaviour {
         ITouchHit hit;
         gesture.GetTargetHitResult(out hit);
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
-        Debug.Log("alkaskl " + gesture.WorldTransformCenter);
-        Debug.Log("PANNED worldpos=" + worldPos);
+        Debug.Log("alkaskl "          + gesture.WorldTransformCenter);
+        Debug.Log("PANNED worldpos="  + worldPos);
     }
     private void flickedHandler(object sender, EventArgs e) {
         Debug.Log("FLICKED");
@@ -35,12 +35,12 @@ public class Gestures : MonoBehaviour {
         TapGesture gesture = (TapGesture)sender;
         ITouchHit hit;
         gesture.GetTargetHitResult(out hit);
-        Debug.Log("hit " + hit.Transform);
-        Debug.Log("gesture " + gesture.ScreenPosition);
+        Debug.Log("hit "      + hit.Transform);
+        Debug.Log("gesture "  + gesture.ScreenPosition);
         Vector3 vec = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
         Debug.Log("worldpos " + vec);
 
-        
+
         //gameObject.transform.position = new Vector3(55, 55, 55);
         //GestureStateChangeEventArgs
     }
@@ -48,12 +48,12 @@ public class Gestures : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
+
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
-	
+
 	}
 
 

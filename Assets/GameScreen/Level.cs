@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class Level : MonoBehaviour {
 
+    // HIDDEN_OBJECT
     public GameObject[] hiddenObjects;
 
     public Sprite[] objectiveSprites;
@@ -14,6 +15,24 @@ public class Level : MonoBehaviour {
     public string objectiveDescriptionFinishedText;
     public string objectiveCaptionText;
     public string levelText;
+
+    // FEED_AGENTS
+    public GameObject[] hotdogAgents;
+
+    // CONSTRUCT_BUILDING
+    public GameObject[] hiddenBuildingParts;
+    // [0] = smoke/black hole (maybe 1 should be smoke depending on what is there from the start)
+    // [1] = the final construction. How the world looks after
+    public GameObject[] buildArea;
+    public SpriteRenderer arrow;
+
+    [HideInInspector] public int foundParts;
+    private int requiredParts;
+
+    void Start(){
+      requiredParts = hiddenBuildingParts.Length;
+      foundParts    = 0;
+    }
 
     public void setCurrentObjective(int currentObjectiveIndex) {
         Main main = GameObject.Find("Main").GetComponent<Main>();
@@ -57,5 +76,40 @@ public class Level : MonoBehaviour {
             if (hiddenObject == hiddenObjects[i])
                 return i;
         return -1;
+    }
+
+    // returns true if done spawning
+    public bool spawnHotdogAgent(){
+      if(hotdogAgents.Length > 0){ // should stop after 6 runs … if(hotdogAgentCount <= 6)
+        int index = Random.Range(0, hotdogAgents.Length - 1);
+        GameObject agent = hotdogAgents[index];
+        agent.SetActive(true);
+
+        System.Collections.Generic.List<GameObject> list = new System.Collections.Generic.List<GameObject>(hotdogAgents);
+        list.Remove(agent);
+        hotdogAgents = list.ToArray();
+
+        return false;
+      }
+      return true;
+    }
+
+    public void initHiddenBuildParts(){
+      // … init the hidden building parts
+      print("Level, hidden building parts has been initiated");
+    }
+
+    public void animateSmoke(){
+      Animator smokeAnim = buildArea[0].GetComponent<Animator>();
+      smokeAnim.SetBool("isTapping", true);
+    }
+
+    public void initConstruction(){
+      if(foundParts >= requiredParts){
+        // … stop smoke
+        // some transistion animation
+        // … activate the finalBuilding (buildArea[1].gameObject.SetActive(true))
+        // some transistion animation stops
+      }
     }
 }

@@ -99,18 +99,18 @@ public class UI : MonoBehaviour {
         notebookOverlayCanvas.SetActive(show);
         if (show) {
             //hilite/dim tabs(bookmarks)
-            notebookObjectiveTabPanel.GetComponent<Image>().sprite = (mode == NotebookMode.OBJECTIVE_TAB ? notebookObjectiveSpriteFocus : notebookObjectiveSpriteNonFocus);
-            notebookHelpTabPanel.GetComponent<Image>().sprite = (mode == NotebookMode.HELP_TAB ? notebookHelpSpriteFocus : notebookHelpSpriteNonFocus);
-            notebookWorldmapTabPanel.GetComponent<Image>().sprite = (mode == NotebookMode.WORLDMAP_TAB ? notebookWorldmapSpriteFocus : notebookWorldmapSpriteNonFocus);
-            notebookOptionsTabPanel.GetComponent<Image>().sprite = (mode == NotebookMode.OPTIONS_TAB ? notebookOptionsSpriteFocus : notebookOptionsSpriteNonFocus);
+            notebookObjectiveTabPanel.GetComponent<Image>().sprite  = (mode == NotebookMode.OBJECTIVE_TAB ? notebookObjectiveSpriteFocus  : notebookObjectiveSpriteNonFocus);
+            notebookHelpTabPanel.GetComponent<Image>().sprite       = (mode == NotebookMode.HELP_TAB      ? notebookHelpSpriteFocus       : notebookHelpSpriteNonFocus);
+            notebookWorldmapTabPanel.GetComponent<Image>().sprite   = (mode == NotebookMode.WORLDMAP_TAB  ? notebookWorldmapSpriteFocus   : notebookWorldmapSpriteNonFocus);
+            notebookOptionsTabPanel.GetComponent<Image>().sprite    = (mode == NotebookMode.OPTIONS_TAB   ? notebookOptionsSpriteFocus    : notebookOptionsSpriteNonFocus);
 
             //hide/show current tab contents
             notebookObjectiveHolderPanel.SetActive(mode == NotebookMode.OBJECTIVE_TAB);
-            notebookHelpHolderPanel.SetActive(mode == NotebookMode.HELP_TAB);
-            notebookWorldmapHolderPanel.SetActive(mode == NotebookMode.WORLDMAP_TAB);
-            notebookOptionsHolderPanel.SetActive(mode == NotebookMode.OPTIONS_TAB);
+            notebookHelpHolderPanel.SetActive(mode      == NotebookMode.HELP_TAB);
+            notebookWorldmapHolderPanel.SetActive(mode  == NotebookMode.WORLDMAP_TAB);
+            notebookOptionsHolderPanel.SetActive(mode   == NotebookMode.OPTIONS_TAB);
 
-            notebookRibbonHolderPanel.SetActive(mode == NotebookMode.OBJECTIVE_TAB); //only show when objective tab
+            notebookRibbonHolderPanel.SetActive(mode      == NotebookMode.OBJECTIVE_TAB); //only show when objective tab
             notebookCaptionText.GetComponent<Text>().text = main.level.objectiveCaptionText;
 
             notebookButtonPanel.SetActive(false);
@@ -134,18 +134,7 @@ public class UI : MonoBehaviour {
                 for (int i = 0; i < notebookObjectiveCheckmarkPanels.Length; i++) {
                     notebookObjectiveCheckmarkPanels[i].SetActive(i <= Global.instance.currentHiddenIndex - 1);
                 }
-                // notebookButtonText.GetComponent<Text>().text = (Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length ? "FINISH" : "PLAY");
-                // notebookButtonPanel.SetActive(true);
-             } //else if (mode == NotebookMode.HELP_TAB) {
-            //     notebookButtonText.GetComponent<Text>().text = "CLOSE";
-            //     notebookButtonPanel.SetActive(true);
-            // } else if (mode == NotebookMode.WORLDMAP_TAB) {
-            //     notebookButtonText.GetComponent<Text>().text = "RETURN";
-            //     notebookButtonPanel.SetActive(true);
-            // } else if (mode == NotebookMode.OPTIONS_TAB) {
-            //     notebookButtonText.GetComponent<Text>().text = "CLOSE";
-            //     notebookButtonPanel.SetActive(true);
-            // }
+             }
 
         }else{
           if(!iapCanvas.activeSelf){
@@ -157,7 +146,7 @@ public class UI : MonoBehaviour {
 
 	// Use this for initialization
 	void Awake () {
-    main = FindObjectOfType<Main>();
+    	main = FindObjectOfType<Main>();
 	}
 
 	// Update is called once per frame

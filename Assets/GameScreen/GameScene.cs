@@ -27,6 +27,16 @@ public class GameScene : MonoBehaviour {
     private PointerEventData tmpPointer;
     private List<RaycastResult> tmpRaycastResults = new List<RaycastResult>();
 
+    // FEED_AGENTS
+    private GameObject draggableHotdog;
+    bool mouseIsDraggingObject = false;
+    bool shouldInitHotdogAgents = false;
+
+    // CONSTRUCT_BUILDING
+    private int frames, tapsOnBuildArea;
+    private const int TAPPING_BUFFER  = 20;
+    private const int REQUIRED_TAPS   = 12;
+
     void Awake() {
         cam = Camera.main;
         main = GetComponent<Main>();
@@ -51,6 +61,9 @@ public class GameScene : MonoBehaviour {
         // show the popupOverlay
         string currentObjectiveText = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex];
         main.ui.showPopupObjectiveWithText(currentObjectiveText);
+
+        // CONSTRUCT_BUILDING
+        tapsOnBuildArea = 0;
 
         // Soomla store event listeners.
         StoreEvents.OnMarketPurchase += onMarketPurchase;
@@ -78,45 +91,34 @@ public class GameScene : MonoBehaviour {
     //*********************************************************************
 
     private void pannedHandler(object sender, EventArgs e) {
-        // check if in menu! Disable panned
+        //if(mouseIsDraggingObject) return;
 
-        PanGesture gesture = (PanGesture)sender;
+        // check if in menu! Disable panned
+        PanGesture gesture = (PanGesture) sender;
 
         //check for UI objects
-        tmpPointer.position = gesture.ScreenPosition; //gui is in screen pos, not world pos
-        tmpRaycastResults.Clear(); //reset previous results
-        EventSystem.current.RaycastAll(tmpPointer, tmpRaycastResults);
+        // tmpPointer.position = gesture.ScreenPosition; //gui is in screen pos, not world pos
+        // tmpRaycastResults.Clear(); //reset previous results
+        // EventSystem.current.RaycastAll(tmpPointer, tmpRaycastResults);
+
+        // is below used?
         foreach (RaycastResult res in tmpRaycastResults) {
-            Debug.Log("RAYUIPAN name=" + res.gameObject.name + " tag=" + res.gameObject.tag);
-            //manually scrolling UI ScrollRect.. and it works! whawhawha something that works for a change, yay
             if (res.gameObject.name == "ObjectiveScrollHolderPanel") {
                 ScrollRect scrollRect = res.gameObject.GetComponent<ScrollRect>();
                 scrollRect.verticalNormalizedPosition -= 0.1f;
 
-                //string strt = Tags.hiddenobject;
-
-                //GameObject[] comps = res.gameObject.GetComponents<GameObject>();
                 Transform[] comps = res.gameObject.GetComponentsInChildren<Transform>();
-                //foreach (GameObject o in comps) {
                 foreach (Transform t in comps) {
-                    //Debug.Log("test: min=" + o.GetComponent<Renderer>().bounds.min.y + " max=" + o.GetComponent<Renderer>().bounds.max.y);
-//                    Debug.Log(t.gameObject.name);
-//                    Debug.Log(t.gameObject.transform.localPosition); //use scrolling to component position
-
                     if (t.gameObject.name == "Objective001001Panel") {
                         t.gameObject.SetActive(false);
                     }
-
-                    //RectTransform rectTransform = t.gameObject.GetComponent<RectTransform>();
-                    //if (rectTransform)
-                    //    Debug.Log(rectTransform.rect.height);
                 }
 
                 float totalHeight = 0;
                 foreach (Transform t in comps) {
                     RectTransform rectTransform = t.gameObject.GetComponent<RectTransform>();
                     if (rectTransform && t.gameObject.name.StartsWith("Objective001") && t.gameObject.activeInHierarchy) {
-                        Debug.Log("Ucrap this is active: " + t.gameObject.name);
+                        //Debug.Log("Ucrap this is active: " + t.gameObject.name);
                         totalHeight += rectTransform.rect.height;
                     }
                 }
@@ -124,7 +126,7 @@ public class GameScene : MonoBehaviour {
                 foreach (Transform t in comps) {
                     if (t.gameObject.name == "ObjectiveScrollPanel") {
                         RectTransform rectTransform = t.gameObject.GetComponent<RectTransform>();
-                        Debug.Log("old height=" + rectTransform.rect.height + " new height=" + totalHeight);
+                        //Debug.Log("old height=" + rectTransform.rect.height + " new height=" + totalHeight);
                     }
                 }
             }
@@ -132,26 +134,20 @@ public class GameScene : MonoBehaviour {
 
 
         //game
-        Vector3 worldPos = gesture.WorldTransformCenter;
-        Vector3 prevWorldPos = gesture.PreviousWorldTransformCenter;
-        Vector3 newWorldPos = lerpPos - (worldPos - prevWorldPos);
-        //Debug.Log("PANNED to=" + newWorldPos);
+        Vector3 worldPos      = gesture.WorldTransformCenter;
+        Vector3 prevWorldPos  = gesture.PreviousWorldTransformCenter;
+        Vector3 newWorldPos   = lerpPos - (worldPos - prevWorldPos);
+
         setLerpPos(newWorldPos, 0.1f);
     }
-//    private void flickedHandler(object sender, EventArgs e) {
-//        FlickGesture gesture = (FlickGesture)sender;
-//        ITouchHit hit;
-//        gesture.GetTargetHitResult(out hit);
-//        Vector3 worldPos = cam.ScreenToWorldPoint(gesture.ScreenPosition);
-////        setLerpPos(worldPos);
-//        Debug.Log("FLICKED to=" + worldPos);
-//    }
+
     private void tappedHandler(object sender, EventArgs e) {
-        TapGesture gesture = (TapGesture)sender;
+        TapGesture gesture = (TapGesture) sender;
 
         //check for UI objects
         tmpPointer.position = gesture.ScreenPosition; //gui is in screen pos, not world pos
         tmpRaycastResults.Clear(); //reset previous results
+
         EventSystem.current.RaycastAll(tmpPointer, tmpRaycastResults);
         if(tmpRaycastResults.Count <= 0){ //If no ui object was hit - close all menu elements and show the gamescene
           main.ui.showMenu(false);
@@ -161,18 +157,20 @@ public class GameScene : MonoBehaviour {
         }
 
         foreach (RaycastResult res in tmpRaycastResults) {
-            //yet another workaround .. so apparantly raycast masking (see UIButtonRaycastMask) on gui doesnt work for EventSystem.current.RaycastAll
+            // yet another workaround .. so apparantly raycast masking (see UIButtonRaycastMask) on gui doesnt work for EventSystem.current.RaycastAll
             UIButtonRaycastMask uiButtonRaycastMask = res.gameObject.GetComponent<UIButtonRaycastMask>();
             bool hitAccepted = true;
             if (uiButtonRaycastMask && !uiButtonRaycastMask.IsRaycastLocationValid(gesture.ScreenPosition, Camera.main))
                 hitAccepted = false;
             if (hitAccepted) {
-                Debug.Log("RAYUIHIT name=" + res.gameObject.name + " tag=" + res.gameObject.tag);
+                // Debug.Log("RAYUIHIT name=" + res.gameObject.name + " tag=" + res.gameObject.tag);
                 string pressedObject = res.gameObject.name;
+                //print("GameScene, pressed: " + pressedObject);
                 if(pressedObject == "CurrentObjectivePanel"){
                   main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
                   return;
                 }
+
                 if (pressedObject == "Menu") { // for some reason it does not reach the 'MenuButton', but Menu works just fine
                     main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
                     return;
@@ -214,6 +212,7 @@ public class GameScene : MonoBehaviour {
                       }
                   }
                 }
+
                 //notebook ui hits
                 if (res.gameObject == main.ui.notebookObjectiveTabPanel) {
                     main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
@@ -265,7 +264,6 @@ public class GameScene : MonoBehaviour {
 
                     if (res.gameObject == main.ui.notebookButtonPanel) {
                         if (Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length) {
-                            //all objectives found
                             Application.LoadLevel("WorldMap");
                         } else {
                             main.ui.showNotebook(UI.NotebookMode.CLOSED, false);
@@ -295,61 +293,122 @@ public class GameScene : MonoBehaviour {
                         main.ui.showNotebook(UI.NotebookMode.CLOSED, false);
                 }
             }
-
-
         }
 
+    //check if we hit objective object
+    ITouchHit hit;
+    gesture.GetTargetHitResult(out hit);
+    Vector3 vec = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
 
-        //check if we hit hidden object
-        ITouchHit hit;
-        gesture.GetTargetHitResult(out hit);
-        Vector3 vec = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
+    Collider2D[] cols = Physics2D.OverlapPointAll(vec);
 
-        Collider2D[] cols = Physics2D.OverlapPointAll(vec);
+    // initial state: FIND_HIDDEN_OBJECTS
+		if(Global.instance.gameState == Global.GameState.FIND_HIDDEN_OBJECTS){
         for (int i = 0; i < cols.Length; i++) {
             //Debug.Log("RAYHITGAME name=" + cols[i].name + " tag=" + cols[i].tag);
             if (cols[i].gameObject.tag == UnityConstants.Tags.HIDDEN_OBJECT) {
                 GameObject hiddenObject = cols[i].gameObject;
                 Level level = main.levelObj.GetComponent<Level>();
                 int hiddenObjectIndex = level.getHiddenObjectIndex(hiddenObject);
-                //Debug.Log("Found" + hiddenObject);
+
                 if (Global.instance.currentHiddenIndex == hiddenObjectIndex) {
                     Global.instance.currentHiddenIndex++;
                     main.levelObj.GetComponent<Level>().setCurrentObjective(Global.instance.currentHiddenIndex);
-                    if (Global.instance.currentHiddenIndex >= level.hiddenObjects.Length) {
-                        Global.instance.updateLevelProgression();
-                    } else {
-                        Debug.Log("Found hidden object, next hiddenObjectIndex=" + Global.instance.currentHiddenIndex);
+                    if (Global.instance.currentHiddenIndex >= level.hiddenObjects.Length){
+                        // found the last hidden object and move on to next part of the level
+                        shouldInitHotdogAgents = true;
+                        print("GameScene, changing state to FEED_AGENTS");
+                        Global.instance.gameState = Global.GameState.FEED_AGENTS;
                     }
-                    break;
-                }
+                break;
+              }
+              // to be deleted
+            }else if(cols[i].gameObject.tag == UnityConstants.Tags.SMOKE){
+              //cols[i].gameObject.GetComponent<Animator>().Play();
             }
+          }
+
+        // second state FEED_AGENTS
+        }else if(Global.instance.gameState == Global.GameState.FEED_AGENTS){
+          if(shouldInitHotdogAgents){
+            main.level.spawnHotdogAgent();
+            shouldInitHotdogAgents = false;
+          }
+
+          for (int i = 0; i < cols.Length; i++){
+            GameObject clickedObj = cols[i].gameObject;
+            if(clickedObj.tag == UnityConstants.Tags.HOTDOG_AGENT){
+              // start animation instead of deactivating
+              clickedObj.SetActive(false);
+
+              // initiate speech buble to give hint of they need
+
+              // spawnHotdogAgent spawns a new HOTDOG_AGENT if spawn < SPAWN_AMOUNT
+              // otherwise returns false and moving to next state
+              bool isDoneFeeding = main.level.spawnHotdogAgent();
+              if(isDoneFeeding){
+                Global.instance.gameState = Global.GameState.CONSTRUCT_BUILDING;
+                // navigate to build area for presentation
+                print("GameScene, activating arrow!");
+                main.level.arrow.enabled = true;
+              }
+            }
+          }
+
+        // third and final state: CONSTRUCT_BUILDING
+        }else if(Global.instance.gameState == Global.GameState.CONSTRUCT_BUILDING){
+          // initiate finding the hidden objects required to construct the building
+          main.level.initHiddenBuildParts();
+
+          // tapping on area generate smoke animation
+          for (int i = 0; i < cols.Length; i++){
+            GameObject clickedObj = cols[i].gameObject;
+            if(clickedObj.tag == "HIDDEN_BUILD_PART"){
+                // increment foundParts
+                main.level.foundParts++;
+
+                // move the part to the BUILD_AREA (its location is known to itself)
+
+              // it is probably not smoke from the start so the tag should be something like "BUILD_AREA"
+            }else if(clickedObj.tag == "SMOKE"){
+              main.level.animateSmoke();
+              // increment tapping counter
+              tapsOnBuildArea++;
+
+              // enough taps has been done do complete construction
+              if(tapsOnBuildArea >= REQUIRED_TAPS){
+                // maybe stop the animation with a final animation state?
+                main.level.initConstruction();
+                // level done! Calculate score.
+              }
+            }
+          }
         }
+
     }
-
-
 
     //*********************************************************************
     //*********************************  Frame ****************************
     //*********************************************************************
 
-
-
-
-
     void Update() {
-        //if (Input.GetMouseButtonUp(1)) {
-        //    Vector3 lerp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        //    setLerpPos(lerp, 0);
-        //}
+      //camera movement
+      lerpTimer += (LERP_SPEED * Time.deltaTime);
+      if (lerpTimer <= 1) {
+          Vector3 lerp = Vector3.Lerp(cam.transform.position, lerpPos, lerpTimer);
+          cam.transform.position = lerp;
+      }
 
-
-        //camera movement
-        lerpTimer += (LERP_SPEED * Time.deltaTime);
-        if (lerpTimer <= 1) {
-            Vector3 lerp = Vector3.Lerp(cam.transform.position, lerpPos, lerpTimer);
-            cam.transform.position = lerp;
+      // tapping on building
+      if(Global.instance.gameState == Global.GameState.CONSTRUCT_BUILDING){
+        if(frames > TAPPING_BUFFER){
+          Animator smokeAnim = main.level.buildArea[0].GetComponent<Animator>();
+          smokeAnim.SetBool("isTapping", false);
+          frames = 0;
         }
+
+        frames++;
+      }
     }
 
 
@@ -382,6 +441,7 @@ public class GameScene : MonoBehaviour {
         //find cam bounds for level
         float vertExtent = cam.orthographicSize;
         float horzExtent = vertExtent * Screen.width / Screen.height;
+
         float mincamx = minx + horzExtent;
         float maxcamx = maxx - horzExtent;
         float mincamy = miny + vertExtent;
@@ -389,17 +449,16 @@ public class GameScene : MonoBehaviour {
         //Debug.Log("mincamx=" + mincamx + "maxcamx=" + maxcamx + "mincamy=" + mincamy + "maxcamy=" + maxcamy);
 
         //adjust and set lerp
-        lerp.x = Mathf.Clamp(lerp.x, mincamx, maxcamx);
-        lerp.y = Mathf.Clamp(lerp.y, mincamy, maxcamy);
-        lerpPos = lerp;
+        lerp.x    = Mathf.Clamp(lerp.x, mincamx, maxcamx);
+        lerp.y    = Mathf.Clamp(lerp.y, mincamy, maxcamy);
+        lerpPos   = lerp;
         lerpPos.z = cam.transform.position.z;
 
         lerpTimer = 0;
     }
 
 
-    /*
-      Soomla store events
+    /** Soomla store events
       They are kept here so IAPManager does not have to interact with UI elements.
 
       onMarketPurchase handles the aftermath of a purchase. For some reason the ToString method does not
