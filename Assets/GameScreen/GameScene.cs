@@ -29,40 +29,43 @@ public class GameScene : MonoBehaviour {
 
     // FEED_AGENTS
     private GameObject draggableHotdog;
-    bool mouseIsDraggingObject = false;
     bool shouldInitHotdogAgents = false;
 
     // CONSTRUCT_BUILDING
-    private int frames, tapsOnBuildArea;
-    private const int TAPPING_BUFFER  = 20;
-    private const int REQUIRED_TAPS   = 12;
+    private int tapsOnBuildArea;
+    private const int REQUIRED_TAPS = 12;
+    bool shouldInitBuildParts = true;
 
     void Awake() {
-        cam = Camera.main;
-        main = GetComponent<Main>();
-        tmpPointer = new PointerEventData(EventSystem.current);
+      cam = Camera.main;
+      main = GetComponent<Main>();
+      tmpPointer = new PointerEventData(EventSystem.current);
     }
 
     void Start() {
+        //Global.instance.updateLevelData();
         lerpPos = cam.transform.position;
 
         //load level prefab component
         main.loadLevel(Global.instance.currentLevelIndex);
         if (Global.instance.currentHiddenIndex < 0 || Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length)
             Global.instance.currentHiddenIndex = 0;
+
         main.levelObj.GetComponent<Level>().setCurrentObjective(Global.instance.currentHiddenIndex);
 
         //init ui stuff
         main.ui.currentObjectivePanel.GetComponent<Image>().sprite = main.level.objectiveSprites[Global.instance.currentHiddenIndex];
-        main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
 
-        //show notebook with objective
-        //main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
+        // show notebook with objective
+        // main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
         // show the popupOverlay
         string currentObjectiveText = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex];
         main.ui.showPopupObjectiveWithText(currentObjectiveText);
 
-        // CONSTRUCT_BUILDING
+        // init hint number
+        main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
+
+        // data for the state CONSTRUCT_BUILDING
         tapsOnBuildArea = 0;
 
         // Soomla store event listeners.
@@ -91,9 +94,7 @@ public class GameScene : MonoBehaviour {
     //*********************************************************************
 
     private void pannedHandler(object sender, EventArgs e) {
-        //if(mouseIsDraggingObject) return;
-
-        // check if in menu! Disable panned
+        // TODO check if in menu! Disable panned
         PanGesture gesture = (PanGesture) sender;
 
         //check for UI objects
@@ -196,8 +197,6 @@ public class GameScene : MonoBehaviour {
                     //    main.ui.notebookObjectiveDescriptionText.GetComponent<Text>().text = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex];
                     //}
                 }else if(res.gameObject.name == "QuitButton"){
-                  // reset the currentHiddenIndex to avoid skipping hidden objects in other levels
-                  Global.instance.currentHiddenIndex = 0;
                   Application.LoadLevel("WorldMap");
                 }else if (pressedObject == "HintPanel") {
                   if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.hiddenObjects.Length) {
@@ -205,7 +204,7 @@ public class GameScene : MonoBehaviour {
                           GameObject hiddenGameObj = main.level.hiddenObjects[Global.instance.currentHiddenIndex];
                           setLerpPos(hiddenGameObj.transform.position);
                           Global.instance.hintCount--;
-                          Global.instance.updatePlayerPrefWithValue("hintcount", -1);
+                          Global.instance.updatePlayerPrefWithInt("hintcount", -1);
                           main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
                       } else {
                           Debug.Log("TODO: open shop to get more hints");
@@ -230,40 +229,41 @@ public class GameScene : MonoBehaviour {
                 if (main.ui.notebookMode == UI.NotebookMode.OBJECTIVE_TAB) {
                     string text = "";
                     int index = -1;
+                    int currentHiddenIndex = Global.instance.getCurrentHiddenIndex();
                     if(pressedObject == "ObjectiveBig1Panel"){ // this could be generalized
                       index = 0;
                       text = main.level.objectiveDescriptionTexts[index];
-                      if(Global.instance.currentHiddenIndex >= index){
+                      if(currentHiddenIndex >= index){
                         main.ui.changeObjectiveTextTo(text);
                       }
                     }else if(pressedObject == "ObjectiveBig2Panel"){
                       index = 1;
                       text = main.level.objectiveDescriptionTexts[index];
-                      if(Global.instance.currentHiddenIndex >= index){
+                      if(currentHiddenIndex >= index){
                         main.ui.changeObjectiveTextTo(text);
                       }
                     }else if(pressedObject == "ObjectiveBig3Panel"){
                       index = 2;
                       text = main.level.objectiveDescriptionTexts[index];
-                      if(Global.instance.currentHiddenIndex >= index){
+                      if(currentHiddenIndex >= index){
                         main.ui.changeObjectiveTextTo(text);
                       }
                     }else if(pressedObject == "ObjectiveBig4Panel"){
                       index = 3;
                       text = main.level.objectiveDescriptionTexts[index];
-                      if(Global.instance.currentHiddenIndex >= index){
+                      if(currentHiddenIndex >= index){
                         main.ui.changeObjectiveTextTo(text);
                       }
                     }else if(pressedObject == "ObjectiveBig5Panel"){
                       index = 4;
                       text = main.level.objectiveDescriptionTexts[index];
-                      if(Global.instance.currentHiddenIndex >= index){
+                      if(currentHiddenIndex >= index){
                         main.ui.changeObjectiveTextTo(text);
                       }
                     }
 
                     if (res.gameObject == main.ui.notebookButtonPanel) {
-                        if (Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length) {
+                        if (currentHiddenIndex >= main.level.objectiveSprites.Length) {
                             Application.LoadLevel("WorldMap");
                         } else {
                             main.ui.showNotebook(UI.NotebookMode.CLOSED, false);
@@ -312,13 +312,16 @@ public class GameScene : MonoBehaviour {
                 int hiddenObjectIndex = level.getHiddenObjectIndex(hiddenObject);
 
                 if (Global.instance.currentHiddenIndex == hiddenObjectIndex) {
-                    Global.instance.currentHiddenIndex++;
+                    Global.instance.updateCurrentHiddenIndex();
+                    //Global.instance.currentHiddenIndex++;
                     main.levelObj.GetComponent<Level>().setCurrentObjective(Global.instance.currentHiddenIndex);
+                    // check if we found all the hidden objects
                     if (Global.instance.currentHiddenIndex >= level.hiddenObjects.Length){
                         // found the last hidden object and move on to next part of the level
                         shouldInitHotdogAgents = true;
-                        print("GameScene, changing state to FEED_AGENTS");
-                        Global.instance.gameState = Global.GameState.FEED_AGENTS;
+                        Global.instance.changeGameState(Global.GameState.FEED_AGENTS);
+                        // present next state to the player and clear the small ribbons to the right
+                        main.levelObj.GetComponent<Level>().prepareFeedingState();
                     }
                 break;
               }
@@ -328,7 +331,7 @@ public class GameScene : MonoBehaviour {
             }
           }
 
-        // second state FEED_AGENTS
+        // second state FEED_AGENTS (hungry customers)
         }else if(Global.instance.gameState == Global.GameState.FEED_AGENTS){
           if(shouldInitHotdogAgents){
             main.level.spawnHotdogAgent();
@@ -338,53 +341,61 @@ public class GameScene : MonoBehaviour {
           for (int i = 0; i < cols.Length; i++){
             GameObject clickedObj = cols[i].gameObject;
             if(clickedObj.tag == UnityConstants.Tags.HOTDOG_AGENT){
-              // start animation instead of deactivating
-              clickedObj.SetActive(false);
-
-              // initiate speech buble to give hint of they need
-
-              // spawnHotdogAgent spawns a new HOTDOG_AGENT if spawn < SPAWN_AMOUNT
-              // otherwise returns false and moving to next state
-              bool isDoneFeeding = main.level.spawnHotdogAgent();
-              if(isDoneFeeding){
-                Global.instance.gameState = Global.GameState.CONSTRUCT_BUILDING;
-                // navigate to build area for presentation
-                print("GameScene, activating arrow!");
-                main.level.arrow.enabled = true;
-              }
+              main.level.foundHungryAgent(clickedObj);
             }
           }
 
         // third and final state: CONSTRUCT_BUILDING
         }else if(Global.instance.gameState == Global.GameState.CONSTRUCT_BUILDING){
-          // initiate finding the hidden objects required to construct the building
-          main.level.initHiddenBuildParts();
-
-          // tapping on area generate smoke animation
           for (int i = 0; i < cols.Length; i++){
             GameObject clickedObj = cols[i].gameObject;
-            if(clickedObj.tag == "HIDDEN_BUILD_PART"){
-                // increment foundParts
-                main.level.foundParts++;
 
-                // move the part to the BUILD_AREA (its location is known to itself)
+            // click on build area to be presented for building parts (silhouette)
+            if(clickedObj.tag == UnityConstants.Tags.BUILD_AREA && !main.level.isReadyToBuild){
+              // present popup with silhouttes for hidden parts
+              main.level.popup.SetActive(!main.level.popup.activeSelf);
 
-              // it is probably not smoke from the start so the tag should be something like "BUILD_AREA"
-            }else if(clickedObj.tag == "SMOKE"){
+              // initiate the hidden parts once
+              if(shouldInitBuildParts){
+                main.level.initHiddenBuildParts();
+                shouldInitBuildParts = false;
+
+                // hide the arrow
+                main.level.arrow.enabled = false;
+              }
+
+            }else if(clickedObj.tag == UnityConstants.Tags.HIDDEN_BUILD_PART){
+              // notify level that we found a part
+              main.level.foundPart(clickedObj.name);
+
+              // remove the found part
+              // (we could lerp animate it to the build area)
+              clickedObj.SetActive(false);
+
+            // we need to be ready before activating smoke (= found all parts)
+            }else if(clickedObj.tag == UnityConstants.Tags.BUILD_AREA){
+              // tapping on area generate smoke animation
               main.level.animateSmoke();
+              main.level.popup.SetActive(false);
+
               // increment tapping counter
               tapsOnBuildArea++;
+              print("GameScene, tapping++ " + tapsOnBuildArea);
 
               // enough taps has been done do complete construction
               if(tapsOnBuildArea >= REQUIRED_TAPS){
                 // maybe stop the animation with a final animation state?
-                main.level.initConstruction();
-                // level done! Calculate score.
+                print("Level, enable the construction! You are done!");
+                Global.instance.changeGameState(Global.GameState.FINSISHED);
+
+                // StartCoroutine(main.level.fadeOutObject(main.level.smoke));
+                // StartCoroutine(main.level.fadeInObject(main.level.finalBuilding));
+
+                // TODO : level done! Calculate score and CELEBRATE
               }
             }
           }
         }
-
     }
 
     //*********************************************************************
@@ -397,17 +408,6 @@ public class GameScene : MonoBehaviour {
       if (lerpTimer <= 1) {
           Vector3 lerp = Vector3.Lerp(cam.transform.position, lerpPos, lerpTimer);
           cam.transform.position = lerp;
-      }
-
-      // tapping on building
-      if(Global.instance.gameState == Global.GameState.CONSTRUCT_BUILDING){
-        if(frames > TAPPING_BUFFER){
-          Animator smokeAnim = main.level.buildArea[0].GetComponent<Animator>();
-          smokeAnim.SetBool("isTapping", false);
-          frames = 0;
-        }
-
-        frames++;
       }
     }
 
@@ -472,9 +472,9 @@ public class GameScene : MonoBehaviour {
       string itemIDString = item["itemId"].ToString();
 
       if(itemIDString.Contains("hints_small_id")){
-        Global.instance.updatePlayerPrefWithValue("hintcount", 5);
+        Global.instance.updatePlayerPrefWithInt("hintcount", 5);
       }else if(itemIDString.Contains("hints_large_id")){
-        Global.instance.updatePlayerPrefWithValue("hintcount", 20);
+        Global.instance.updatePlayerPrefWithInt("hintcount", 20);
       }
 
       main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();

@@ -30,8 +30,8 @@ namespace Soomla {
 		/// </summary>
 		/// <param name="tag">The name of the class whose instance called this function.</param>
 		/// <param name="message">Debug message to output to log.</param>
-		public static void LogDebug(string tag, string message)
-		{
+		public static void LogDebug(string tag, string message){
+						return;
             if (!isDebugBuildSet)
             {
                 try //Debug.isDebugBuild can fail on WP8 if it is not called from the Main Thread
@@ -75,4 +75,3 @@ namespace Soomla {
 		}
 	}
 }
-

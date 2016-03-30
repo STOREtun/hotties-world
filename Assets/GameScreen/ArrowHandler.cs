@@ -8,19 +8,62 @@ public class ArrowHandler : MonoBehaviour {
 	private Camera cam;
 	private Vector3 screenPos;
 
+	// test variables
+	private float journeyLength;
+	private float startTime;
+	private const float speed = 0.2f;
+
 	// Use this for initialization
 	void Start () {
 		cam = Camera.main;
+
+		journeyLength = Vector3.Distance(transform.position, pointTo.position);
+		startTime = Time.time;
 	}
 
 	// Update is called once per frame
 	void Update () {
-		screenPos = GetComponent<Camera>().WorldToViewportPoint(transform.position);
-		if(screenPos.x >= 0 && screenPos.x <= 1 && screenPos.y >= 0 && screenPos.y <= 1){
-			print("ArrowHandler, within bounds");
-			return;
-		}else	print("ArrowHandler, out of bounds");
+		// rotate the arrow to look at target
+		Quaternion rotation = Quaternion.LookRotation (pointTo.position - transform.position, transform.TransformDirection(Vector3.up));
+    transform.rotation = new Quaternion(0, 0, rotation.z, rotation.w);
 
-		transform.Rotate(0, Time.deltaTime, 1, Space.World);
+		screenPos = cam.WorldToViewportPoint(transform.position);
+		float xAxis = screenPos.x;
+		float yAxis = screenPos.y;
+
+		// move the arrow towards the building area
+		if(xAxis >= 0.2f && xAxis <= 0.8f
+		&& yAxis >= 0.3f && yAxis <= 1f){
+			// in bounds of screen
+			float distCovered = (Time.time - startTime) * speed;
+      float fracJourney = (distCovered / journeyLength) / 10;
+			transform.position = Vector3.Lerp(transform.position, pointTo.position, fracJourney);
+		}else{
+			// out of bounds - correcting the position of the arrow
+			Vector3 newPos = Vector3.zero;
+
+			// x: 0 … 1
+			// y: 1
+			//		…
+			//		0
+			if(xAxis <= 0.1f){
+				newPos = Vector3.right;
+			}else if(xAxis >= 0.8f){
+				newPos = Vector3.left;
+			}else if(yAxis <= 0.2f){
+				newPos = Vector3.up;
+			}else	if(yAxis >= 0.8f){
+				newPos = Vector3.down;
+			}
+			transform.position = Vector3.Lerp(transform.position, transform.position + newPos, speed);
+
+			// deactivate arrow if within range of pointTo (target)
+			// …
+		}
+		float distance = Vector3.Distance(pointTo.position, transform.position);
+	}
+
+	public void deactivateArrow(){
+		gameObject.SetActive(false);
 	}
 }

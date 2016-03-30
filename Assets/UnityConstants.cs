@@ -22,6 +22,8 @@ namespace UnityConstants
         public const string HIDDEN_OBJECT_CHECKMARK = "HIDDEN_OBJECT_CHECKMARK";
         public const string HOTDOG_AGENT            = "HOTDOG_AGENT";
         public const string SMOKE                   = "SMOKE";
+        public const string BUILD_AREA              = "BUILD_AREA";
+        public const string HIDDEN_BUILD_PART       = "HIDDEN_BUILD_PART";
     }
 
     public static class SortingLayers

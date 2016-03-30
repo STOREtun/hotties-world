@@ -52,6 +52,9 @@ public class UI : MonoBehaviour {
     public GameObject popupOverlay;
     public GameObject popupText;
 
+    public Sprite emptyBadge;
+    public Sprite hotdog;
+
     private Main main = null;
 
     public void showPopupObjectiveWithText(string text){
@@ -128,11 +131,12 @@ public class UI : MonoBehaviour {
                     notebookObjectiveDescriptionText.GetComponent<Text>().text = str;
                 }
                 //set big ribbon objectives
-                for (int i = 0; i <= Global.instance.currentHiddenIndex && i < main.level.objectiveSprites.Length; i++) {
+                int index = Global.instance.getCurrentHiddenIndex();
+                for (int i = 0; i <= index && i < main.level.objectiveSprites.Length; i++) {
                     notebookObjectivePanels[i].GetComponent<Image>().sprite = main.level.objectiveSprites[i];
                 }
                 for (int i = 0; i < notebookObjectiveCheckmarkPanels.Length; i++) {
-                    notebookObjectiveCheckmarkPanels[i].SetActive(i <= Global.instance.currentHiddenIndex - 1);
+                    notebookObjectiveCheckmarkPanels[i].SetActive(i <= index - 1);
                 }
              }
 

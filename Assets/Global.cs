@@ -6,12 +6,12 @@ using Soomla.Store;
 //man maa sno sig sagde slangen
 public class Global  {
 
-    public int currentLevelIndex = 0;
-    public int completedLevels = 0;    // the progression of levels so far
-    public int currentHiddenIndex = 0;
-    public int hintCount = 0;
+    public int currentLevelIndex;
+    public int completedLevels;    // the progression of levels so far
+    public int currentHiddenIndex;
+    public int hintCount;
 
-    public int gamelaunchcount = -1;
+    public int gamelaunchcount;
 
     public IAPManager iapManager = null;
 
@@ -24,7 +24,7 @@ public class Global  {
       CONSTRUCT_BUILDING,
       FINSISHED
     }
-	public GameState gameState = GameState.FIND_HIDDEN_OBJECTS;
+	  public GameState gameState;
 
     protected Global() {} //guarantee singleton
     private static Global _instance = null;
@@ -39,6 +39,9 @@ public class Global  {
     }
 
     private void init() {
+        //PlayerPrefs.DeleteAll();
+
+
         // reset the game
         // PlayerPrefs.SetInt("completedLevels", 0);
         // PlayerPrefs.SetInt("currentlevelindex", 0);
@@ -47,19 +50,38 @@ public class Global  {
         gamelaunchcount++;
         //gamelaunchcount = 0; //testing...
 
-        currentLevelIndex = PlayerPrefs.GetInt("currentlevelindex", 0);
-        currentHiddenIndex = PlayerPrefs.GetInt("currenthiddenindex", 0);
-        completedLevels = PlayerPrefs.GetInt("completedLevels", 0);
-        hintCount = PlayerPrefs.GetInt("hintcount", 3);
-        //hintCount = 9; //testing...
+        //default values
+        currentHiddenIndex  = 0;
+        gameState           = GameState.FIND_HIDDEN_OBJECTS;
 
-        PlayerPrefs.SetInt("currentlevelindex", currentLevelIndex);
-        PlayerPrefs.SetInt("currenthiddenindex", currentHiddenIndex);
-        PlayerPrefs.SetInt("hintcount", hintCount);
+        currentLevelIndex   = PlayerPrefs.GetInt("currentlevelindex", 0);
+        completedLevels     = PlayerPrefs.GetInt("completedLevels", 0);
+        hintCount           = PlayerPrefs.GetInt("hintcount", 3);
+
+        PlayerPrefs.SetInt("currentLevelIndex", currentLevelIndex);
+        //PlayerPrefs.SetInt("currentHiddenIndex", currentHiddenIndex);
+        PlayerPrefs.SetInt("hintCount", hintCount);
         PlayerPrefs.SetInt("completedLevels", completedLevels);
 
         iapManager = new IAPManager();
         iapManager.init();
+    }
+
+    private GameState convertStringToGameState(string _state){
+      GameState convertState = GameState.FIND_HIDDEN_OBJECTS;
+
+      // switch case does not work since gameState.ToString() != GameState.anystate
+      if(_state.Contains("FIND_HIDDEN_OBJECTS")){
+        convertState = GameState.FIND_HIDDEN_OBJECTS;
+      }else if(_state.Contains("FEED_AGENTS")){
+        convertState = GameState.FEED_AGENTS;
+      }else if(_state.Contains("CONSTRUCT_BUILDING")){
+        convertState = GameState.CONSTRUCT_BUILDING;
+      }else if(_state.Contains("FINSISHED")){
+        convertState = GameState.FINSISHED;
+      }
+
+      return convertState;
     }
 
 
@@ -75,18 +97,40 @@ public class Global  {
         return null;
     }
 
+    public void reset(){
+      currentHiddenIndex = 0;
+      gameState = GameState.FIND_HIDDEN_OBJECTS;
+    }
+
+
+    public void updateCurrentHiddenIndex(){
+      currentHiddenIndex++;
+      // levelData.SetField("currentHiddenIndex", currentHiddenIndex);
+      // updateLevelDataInPlayerPrefs();
+    }
+
+    public void changeGameState(GameState newState){
+      gameState = newState;
+      // levelData.SetField("gameState", gameState.ToString());
+      // updateLevelDataInPlayerPrefs();
+    }
+
+    public int getCurrentHiddenIndex(){
+      return currentHiddenIndex;
+      // string index = levelData.GetField("currentHiddenIndex").ToString();
+      // return int.Parse(index);
+    }
+
     /** Maybe not the right place for manipulating data. But this way we keep custom
       manipulation of PlayerPrefs in one place.
     */
-    public void updatePlayerPrefWithValue(string pref, int value){
+    public void updatePlayerPrefWithInt(string pref, int value){
       int currentValue = PlayerPrefs.GetInt(pref);
-      PlayerPrefs.SetInt(pref, currentValue + value); // generic for integer values
+      PlayerPrefs.SetInt(pref, currentValue + value);
+    }
 
-      // Update local (Global) variables NO
-      // hintCount = PlayerPrefs.GetInt("hintcount");
-      // currentLevelIndex = PlayerPrefs.GetInt("currentlevelindex", 0);
-      // currentHiddenIndex = PlayerPrefs.GetInt("currenthiddenindex", 0);
-      // completedLevels = PlayerPrefs.GetInt("completedLevels", 0);
+    public void updatePlayerPrefWithString(string pref, string value){
+      PlayerPrefs.SetString(pref, value);
     }
 
     public void reloadNumberOfHints(){
@@ -102,4 +146,38 @@ public class Global  {
         //completedLevels = PlayerPrefs.GetInt("completedLevels", 0);
       }
     }
+
+    /** Old levelData - the need to save progress is no longer needed
+
+    public JSONObject levelData;
+    levelData = new JSONObject();
+
+    public void updateLevelDataInPlayerPrefs(){
+      PlayerPrefs.SetString("levelData_"+currentLevelIndex, levelData.ToString());
+    }
+
+    // update the current level json object to match levelID
+    public void updateLevelData(){
+       string _data = PlayerPrefs.GetString("levelData_"+currentLevelIndex, "empty");
+
+       // _data is empty if it is the first time loading this level
+       if(_data == "empty"){
+         JSONObject newLevel = new JSONObject();
+
+         newLevel.AddField("levelID", currentLevelIndex);
+         newLevel.AddField("currentHiddenIndex", 0);
+         newLevel.AddField("gameState", GameState.FIND_HIDDEN_OBJECTS.ToString());
+
+         levelData = newLevel;
+         PlayerPrefs.SetString("levelData_"+currentLevelIndex, levelData.ToString());
+       }else{
+         // load the data instead of creating it
+         levelData = new JSONObject(_data);
+
+         // update local level variables
+         gameState          = convertStringToGameState(levelData.GetField("gameState").ToString());
+         currentHiddenIndex = int.Parse(levelData.GetField("currentHiddenIndex").ToString());
+       }
+    }
+    */
 }

@@ -47,6 +47,8 @@ public class WorldScreen : MonoBehaviour {
     void Start() {
         //inititalize location points (show/hide accordingly)
         Global global = Global.instance;
+        global.reset();
+
         Locations locations = GetComponent<Locations>();
         if (global.completedLevels < 0) global.completedLevels = 0;
         Location currentLocation = null;
@@ -109,7 +111,7 @@ public class WorldScreen : MonoBehaviour {
         Collider2D[] cols = Physics2D.OverlapPointAll(vec);
         for (int i = 0; i < cols.Length; i++) {
             Collider2D col = cols[i];
-            Debug.Log("RAYHIT name=" + col.name + " tag=" + col.tag);
+            // Debug.Log("RAYHIT name=" + col.name + " tag=" + col.tag);
             if (col.gameObject.tag == UnityConstants.Tags.LOCATION_LOCATION) {
 
                 Locations locs = GetComponent<Locations>();
