@@ -38,8 +38,9 @@ public class Global  {
         }
     }
 
+    // TODO : dont delete all PlayerPrefs
     private void init() {
-        //PlayerPrefs.DeleteAll();
+        PlayerPrefs.DeleteAll();
 
 
         // reset the game
@@ -52,11 +53,11 @@ public class Global  {
 
         //default values
         currentHiddenIndex  = 0;
-        gameState           = GameState.FIND_HIDDEN_OBJECTS;
+        gameState           = GameState.FIND_HIDDEN_OBJECTS; // GameState.CONSTRUCT_BUILDING;
 
         currentLevelIndex   = PlayerPrefs.GetInt("currentlevelindex", 0);
         completedLevels     = PlayerPrefs.GetInt("completedLevels", 0);
-        hintCount           = PlayerPrefs.GetInt("hintcount", 3);
+        hintCount           = PlayerPrefs.GetInt("hintCount", 3);
 
         PlayerPrefs.SetInt("currentLevelIndex", currentLevelIndex);
         //PlayerPrefs.SetInt("currentHiddenIndex", currentHiddenIndex);

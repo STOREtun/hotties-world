@@ -11,6 +11,8 @@ using TouchScript.Hit;
 
 public class WorldScreen : MonoBehaviour {
 
+    public SpriteRenderer worldMapRenderer;
+
     private enum State { NONE, TRANSITION_ZOOM, READY };
     private State state = State.NONE;
 
@@ -25,119 +27,139 @@ public class WorldScreen : MonoBehaviour {
     private readonly float LERP_ZOOM_TIME = 2f; //transition time for camera zoom effect
     private float lerpZoomTimer = 0; //timer 0..1 for lerp of camera zoom
 
+    private bool loading;
+
     private void OnEnable() {
-        //register input handlers (aka listener aka callback)
-        GetComponent<PanGesture>().Panned += pannedHandler;
-        //GetComponent<FlickGesture>().Flicked += flickedHandler;
-        GetComponent<TapGesture>().Tapped += tappedHandler;
+      //register input handlers (aka listener aka callback)
+      GetComponent<PanGesture>().Panned += pannedHandler;
+      //GetComponent<FlickGesture>().Flicked += flickedHandler;
+      GetComponent<TapGesture>().Tapped += tappedHandler;
     }
 
     private void OnDisable() {
-        //remove input handlers (aka listener aka callback)
-        GetComponent<PanGesture>().Panned -= pannedHandler;
-        //GetComponent<FlickGesture>().Flicked -= pannedHandler;
-        GetComponent<TapGesture>().Tapped -= tappedHandler;
+      //remove input handlers (aka listener aka callback)
+      GetComponent<PanGesture>().Panned -= pannedHandler;
+      //GetComponent<FlickGesture>().Flicked -= pannedHandler;
+      GetComponent<TapGesture>().Tapped -= tappedHandler;
     }
 
     void Awake() {
-        cam = Camera.main;
-        originalOthographicSize = cam.orthographicSize;
+      cam = Camera.main;
+      originalOthographicSize = cam.orthographicSize;
     }
 
     void Start() {
-        //inititalize location points (show/hide accordingly)
-        Global global = Global.instance;
-        global.reset();
+      loading = false;
 
-        Locations locations = GetComponent<Locations>();
-        if (global.completedLevels < 0) global.completedLevels = 0;
-        Location currentLocation = null;
-        //print("WorldScreen, currentIndex: " + global.currentLevelIndex);
-        for (int i = locations.locations.Length - 1; i >= 0; i--) {
-            Location location = locations.locations[i].GetComponent<Location>();
-            Location.LocationState locationState = Location.LocationState.LOCKED;
+      //inititalize location points (show/hide accordingly)
+      Global global = Global.instance;
+      global.reset(); // reset currentIndex and gamestate
 
-            if (i > global.completedLevels)
-                locationState = Location.LocationState.LOCKED;
+      Locations locations = GetComponent<Locations>();
+      if (global.completedLevels < 0) global.completedLevels = 0;
+      Location currentLocation = null;
+      //print("WorldScreen, currentIndex: " + global.currentLevelIndex);
+      for (int i = locations.locations.Length - 1; i >= 0; i--) {
+          Location location = locations.locations[i].GetComponent<Location>();
+          Location.LocationState locationState = Location.LocationState.LOCKED;
 
-            if (i < global.completedLevels)
-                locationState = Location.LocationState.OPEN;
+          if (i > global.completedLevels)
+              locationState = Location.LocationState.LOCKED;
 
-            if (i == global.completedLevels) {
-                locationState = Location.LocationState.CURRENT;
-                currentLocation = location;
-            }
-            //Debug.Log("setting location " + i + " to " + locationState + " currentlevel=" + global.currentLevelIndex);
-            location.state = locationState;
-        }
+          if (i < global.completedLevels)
+              locationState = Location.LocationState.OPEN;
 
-
-
-        //set camera to cover whole world
-        //start camera move/zoom transition to current map location
-        //currentLocation = locations.locations[4].GetComponent<Location>();
-        if (currentLocation) {
-            state = State.READY;
-            //state = State.TRANSITION_ZOOM;
-            GameObject currentObj = GameObject.FindWithTag("LOCATION_CURRENT");
-            Vector3 currentObjectivePos = currentObj.transform.position;
-            //print("WorldScreen, currentObjective.childCount: " + );
-            setLerpPos(currentObjectivePos, 3f);
-
-            //setLerpPos(new Vector3(currentLocation.transform.position.x, currentLocation.transform.position.y, currentLocation.transform.position.z), 3f);
-        }
-        //Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, -93.15f, Camera.main.transform.position.z);
+          if (i == global.completedLevels) {
+              locationState = Location.LocationState.CURRENT;
+              currentLocation = location;
+          }
+          //Debug.Log("setting location " + i + " to " + locationState + " currentlevel=" + global.currentLevelIndex);
+          location.state = locationState;
+      }
 
 
 
+      //set camera to cover whole world
+      //start camera move/zoom transition to current map location
+      //currentLocation = locations.locations[4].GetComponent<Location>();
+      if (currentLocation) {
+        state = State.READY;
+        //state = State.TRANSITION_ZOOM;
+        GameObject currentObj = GameObject.FindWithTag("LOCATION_CURRENT");
+        Vector3 currentObjectivePos = currentObj.transform.position;
+        //print("WorldScreen, currentObjective.childCount: " + );
+        setLerpPos(currentObjectivePos, 3f);
+      }
     }
 
 
 
     private void pannedHandler(object sender, EventArgs e) {
-        PanGesture gesture = (PanGesture)sender;
-        Vector3 worldPos = gesture.WorldTransformCenter;
-        Vector3 prevWorldPos = gesture.PreviousWorldTransformCenter;
-        Vector3 newWorldPos = lerpPos - (worldPos - prevWorldPos);
-        //Debug.Log("PANNED to=" + newWorldPos);
-        setLerpPos(newWorldPos, 0.1f);
+      if(loading) return; // dont let user manipulate screen if loading
+
+      PanGesture gesture = (PanGesture)sender;
+      Vector3 worldPos = gesture.WorldTransformCenter;
+      Vector3 prevWorldPos = gesture.PreviousWorldTransformCenter;
+      Vector3 newWorldPos = lerpPos - (worldPos - prevWorldPos);
+      //Debug.Log("PANNED to=" + newWorldPos);
+      setLerpPos(newWorldPos, 0.1f);
     }
 
     private void tappedHandler(object sender, EventArgs e) {
-        TapGesture gesture = (TapGesture)sender;
-        ITouchHit hit;
-        gesture.GetTargetHitResult(out hit);
-        Vector3 vec = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
-        Collider2D[] cols = Physics2D.OverlapPointAll(vec);
-        for (int i = 0; i < cols.Length; i++) {
-            Collider2D col = cols[i];
-            // Debug.Log("RAYHIT name=" + col.name + " tag=" + col.tag);
-            if (col.gameObject.tag == UnityConstants.Tags.LOCATION_LOCATION) {
+      if(loading) return; // dont let user manipulate screen if loading
 
-                Locations locs = GetComponent<Locations>();
-                int index = Array.IndexOf(locs.locations, col.gameObject);
+      TapGesture gesture = (TapGesture)sender;
+      ITouchHit hit;
+      gesture.GetTargetHitResult(out hit);
+      Vector3 vec = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
+      Collider2D[] cols = Physics2D.OverlapPointAll(vec);
+      for (int i = 0; i < cols.Length; i++) {
+        Collider2D col = cols[i];
+        // Debug.Log("RAYHIT name=" + col.name + " tag=" + col.tag);
+        if (col.gameObject.tag == UnityConstants.Tags.LOCATION_LOCATION) {
+          Locations locs = GetComponent<Locations>();
+          int index = Array.IndexOf(locs.locations, col.gameObject);
 
-                // checking whether the locked_flag is active or not = level open/closed
-                foreach(Transform child in col.gameObject.transform){
-                  string childName = child.gameObject.name;
-                  bool isLocked = child.gameObject.activeSelf;
-                  if(childName == "location_locked" && !isLocked){
-                    loadLevel(index);
-                    break;
-                  }
-
-                }
+          // checking whether the locked_flag is active or not = level open/closed
+          foreach(Transform child in col.gameObject.transform){
+            string childName = child.gameObject.name;
+            bool isLocked = child.gameObject.activeSelf;
+            if(childName == "location_locked" && !isLocked){
+              // loadLevel(index);
+              StartCoroutine(loadLevel(1));
+              break;
             }
+          }
         }
-
-
+      }
     }
 
-    void loadLevel(int level) {
-        Global.instance.currentLevelIndex = level;
-        Application.LoadLevel("Game");
-    }
+    private IEnumerator loadLevel(int level){
+      loading = true;
 
+      worldMapRenderer.color = new Color(0.9f, 0.9f, 0.9f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.8f, 0.8f, 0.8f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.7f, 0.7f, 0.7f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.6f, 0.6f, 0.6f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.5f, 0.5f, 0.5f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.4f, 0.4f, 0.4f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.3f, 0.3f, 0.3f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.2f, 0.2f, 0.2f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.1f, 0.1f, 0.1f, 1);
+      yield return new WaitForSeconds(0.05f);
+      worldMapRenderer.color = new Color(0.0f, 0.0f, 0.0f, 1);
+
+      Global.instance.currentLevelIndex = level;
+      Application.LoadLevel("Game");
+    }
 
 
     void Update() {
@@ -215,99 +237,3 @@ public class WorldScreen : MonoBehaviour {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-//public class World : MonoBehaviour {
-
-//    public GameObject[] locations;
-
-//    int unlockedLocationIndex = 0;
-
-//    private void OnEnable() {
-//        //register input handlers (aka listener aka callback)
-//        GetComponent<TapGesture>().Tapped += tappedHandler;
-//    }
-
-//    private void OnDisable() {
-//        //remove input handlers (aka listener aka callback)
-//        GetComponent<TapGesture>().Tapped -= tappedHandler;
-//    }
-
-//    void Start () {
-//        for (int i = 0; i < locations.Length; i++) {
-//            //Debug.Log(locations[i]);
-//            foreach (Transform t in locations[i].GetComponentInChildren<Transform>()) {
-//                bool unlocked = unlockedLocationIndex <= i;
-//                if (t.name == "location_dot") t.gameObject.SetActive(unlocked);
-//                if (t.name == "location_locked") t.gameObject.SetActive(!unlocked);
-//                //Debug.Log(t.gameObject.name);
-//            }
-
-
-//        }
-
-
-//    }
-
-//    //void Update() {
-//    //    Collider2D col = null; //YAY a nullable type !!
-//    //    if (Input.touchCount == 1) {
-//    //        Touch touch0 = Input.GetTouch(0);
-//    //        if (touch0.phase == TouchPhase.Began) {
-//    //            col = Physics2D.OverlapPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-//    //        }
-//    //    }
-//    //    if (Input.GetMouseButtonUp(0)) {
-//    //        Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-//    //        Vector2 touchPos = new Vector2(pos.x, pos.y);
-//    //        col = Physics2D.OverlapPoint(touchPos);
-//    //    }
-//    //    if (col && col.gameObject.name == "Location") {
-//    //        loadLevel(col.gameObject.GetComponent<Location>().locationIndex);
-//    //    }
-//    //}
-
-//    private void tappedHandler(object sender, EventArgs e) {
-//        TapGesture gesture = (TapGesture)sender;
-//        ITouchHit hit;
-//        gesture.GetTargetHitResult(out hit);
-//        Vector2 vec = Camera.main.ScreenToWorldPoint(gesture.ScreenPosition);
-//        Collider2D col = Physics2D.OverlapPoint(vec);
-//        if (col && col.gameObject.name == "Location") {
-//            loadLevel(0);
-//        }
-//    }
-
-//    void loadLevel(int level) {
-//        Debug.Log("loading level " + level);
-//        Global.instance.currentLevelIndex = level;
-//        Application.LoadLevel("Game");
-//    }
-
-
-//    //void hittest___() {
-//    //    //hit testing with ray (needs a collider)
-//    //    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-//    //    RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
-//    //    if (hit) {
-//    //        Debug.Log("hit");
-//    //    }
-
-//    //    //hit testing with Overlap check (needs a collider)
-//    //    Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-//    //    Vector2 touchPos = new Vector2(pos.x, pos.y);
-//    //    Collider2D col = Physics2D.OverlapPoint(touchPos);
-//    //    if (col) {
-//    //        Debug.Log(col);
-//    //    }
-//    //}
-
-//}
