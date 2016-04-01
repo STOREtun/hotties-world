@@ -66,15 +66,29 @@ public class WorldScreen : MonoBehaviour {
           if (i > global.completedLevels)
               locationState = Location.LocationState.LOCKED;
 
-          if (i < global.completedLevels)
-              locationState = Location.LocationState.OPEN;
+          if (i < global.completedLevels){
+            locationState = Location.LocationState.OPEN;
+
+            // setting score for already completed level
+            int score = Global.instance.getScoreForLevel(i);
+            if(score > 0){
+              for(int x = 0; x < 3; x++){
+                if(x < score){
+                  SpriteRenderer sp = location.golden[x].GetComponent<SpriteRenderer>();
+                  sp.color = new Color(1, 1, 1, 1);
+                }
+              }
+            }
+          }
 
           if (i == global.completedLevels) {
               locationState = Location.LocationState.CURRENT;
               currentLocation = location;
           }
+
           //Debug.Log("setting location " + i + " to " + locationState + " currentlevel=" + global.currentLevelIndex);
           location.state = locationState;
+
       }
 
 
@@ -82,16 +96,17 @@ public class WorldScreen : MonoBehaviour {
       //set camera to cover whole world
       //start camera move/zoom transition to current map location
       //currentLocation = locations.locations[4].GetComponent<Location>();
+      state = State.READY;
       if (currentLocation) {
-        state = State.READY;
         //state = State.TRANSITION_ZOOM;
         GameObject currentObj = GameObject.FindWithTag("LOCATION_CURRENT");
         Vector3 currentObjectivePos = currentObj.transform.position;
         //print("WorldScreen, currentObjective.childCount: " + );
         setLerpPos(currentObjectivePos, 3f);
+      }else{
+        setLerpPos(cam.transform.position, 1f);
       }
     }
-
 
 
     private void pannedHandler(object sender, EventArgs e) {
@@ -126,7 +141,7 @@ public class WorldScreen : MonoBehaviour {
             bool isLocked = child.gameObject.activeSelf;
             if(childName == "location_locked" && !isLocked){
               // loadLevel(index);
-              StartCoroutine(loadLevel(1));
+              StartCoroutine(loadLevel(index));
               break;
             }
           }

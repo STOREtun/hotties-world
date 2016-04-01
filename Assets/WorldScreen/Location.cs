@@ -3,6 +3,10 @@ using System.Collections;
 
 public class Location : MonoBehaviour {
 
+    public enum Score{ZERO, ONE, TWO, THREE};
+    public Score score = Score.ZERO;
+    public GameObject[] golden;
+
     public enum LocationState {LOCKED, OPEN, CURRENT};
     private LocationState pstate = LocationState.LOCKED;
 

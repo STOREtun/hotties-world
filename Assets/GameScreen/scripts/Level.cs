@@ -187,6 +187,7 @@ public class Level : MonoBehaviour {
 
     // TODO : when the last hiddenBuildPart is found what do we put in the right corner?
     public void foundPart(GameObject foundPart){
+      if(foundPart.GetComponent<HiddenBuildPart>().found) return; // already found?
       foundParts++;
 
       foundPart.GetComponent<HiddenBuildPart>().found = true;
@@ -195,7 +196,8 @@ public class Level : MonoBehaviour {
       foreach(GameObject obj in silhouettes){
         if(obj.name == foundPart.name){
           // replace with full sprite instead of deactivate
-          obj.SetActive(false);
+          // obj.SetActive(false);
+          obj.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
         }
       }
 
@@ -203,6 +205,7 @@ public class Level : MonoBehaviour {
       foreach(GameObject part in hiddenBuildingParts){
         if(!part.GetComponent<HiddenBuildPart>().found){
           main.ui.currentObjectivePanel.GetComponent<Image>().sprite = part.GetComponent<SpriteRenderer>().sprite;
+          main.ui.currentObjectivePanel.GetComponent<Image>().color = new Color(0, 0, 0, 1);
         }
       }
 
@@ -214,9 +217,9 @@ public class Level : MonoBehaviour {
       }
     }
 
-    // TODO : change the right icon to something that makes sense in the third minigame
     public void initHiddenBuildParts(){
       main.ui.currentObjectivePanel.GetComponent<Image>().sprite = hiddenBuildingParts[foundParts].GetComponent<SpriteRenderer>().sprite;
+      main.ui.currentObjectivePanel.GetComponent<Image>().color = new Color(0, 0, 0, 1);
       foreach(GameObject obj in hiddenBuildingParts){
         obj.SetActive(true);
       }

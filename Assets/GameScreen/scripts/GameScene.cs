@@ -418,6 +418,7 @@ public class GameScene : MonoBehaviour {
         score = 2;
       }
 
+      Global.instance.saveScoreAndCompleteLevel(score);
       main.ui.showCalculatedScore(msg, score);
     }
 

@@ -40,10 +40,8 @@ public class Global  {
 
     // TODO : dont delete all PlayerPrefs
     private void init() {
-        PlayerPrefs.DeleteAll();
-
-
         // reset the game
+        // PlayerPrefs.DeleteAll();
         // PlayerPrefs.SetInt("completedLevels", 0);
         // PlayerPrefs.SetInt("currentlevelindex", 0);
 
@@ -138,14 +136,53 @@ public class Global  {
       hintCount = PlayerPrefs.GetInt("hintcount", hintCount);
     }
 
-    /** Method not yet finished. It should not be here. Global should not maniulate data
+    /** returns score if the level progress is stored in PlayerPrefs.
+        otherwise return 0
     */
-    public void updateLevelProgression(){
-      if(currentLevelIndex >= completedLevels && currentLevelIndex < MAX_LEVELS){
+    public int getScoreForLevel(int level){
+      int i_score;
 
-        //updatePlayerPrefWithValue("completedLevels", 1);
-        //completedLevels = PlayerPrefs.GetInt("completedLevels", 0);
+      string _scores = PlayerPrefs.GetString("scores", "");
+
+      JSONObject scores = new JSONObject(_scores);
+      if(scores.HasField("levelScore_"+level)){
+        string score = scores.GetField("levelScore_"+level).ToString();
+        i_score = int.Parse(score);
+      }else i_score = 0;
+
+      Debug.Log("Global, Retuns " + i_score + " for level " + level);
+
+      return i_score;
+    }
+
+    public void saveScoreAndCompleteLevel(int score){
+      // TODO : something is wrong. The two level strins does not match
+      // possible solution could be to save an int of the score of each level
+      JSONObject scores = new JSONObject(PlayerPrefs.GetString("scores", ""));
+
+      bool updateScore;
+      if(scores.HasField("levelScore_"+currentLevelIndex)){
+        string previousScore = scores.GetField("levelScore_"+currentLevelIndex).ToString();
+        if(score > int.Parse(previousScore)){
+          updateScore = true;
+        }else updateScore = false;
+      }else updateScore = true;
+
+
+      if(updateScore){
+        scores.AddField("levelScore_"+currentLevelIndex, score);
+        PlayerPrefs.SetString("scores", scores.ToString());
+        PlayerPrefs.SetInt("completedLevels", completedLevels);
       }
+
+      // only increment if is first time playing the level
+      if(currentLevelIndex >= completedLevels){
+        completedLevels++;
+        PlayerPrefs.SetInt("completedLevels", completedLevels);
+      }
+
+      //
+
     }
 
     /** Old levelData - the need to save progress is no longer needed
