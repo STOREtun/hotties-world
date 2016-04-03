@@ -22,6 +22,7 @@ public class ArrowHandler : MonoBehaviour {
 	}
 
 	// TODO : the arrow needs to be rotated 180 degrees
+	// TODO : stop the arrow when within distance (x) of target area
 	// Update is called once per frame
 	void Update () {
 		// rotate the arrow to look at target

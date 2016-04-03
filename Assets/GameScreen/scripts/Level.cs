@@ -7,14 +7,15 @@ public class Level : MonoBehaviour {
 
     // HIDDEN_OBJECT
     public GameObject[] hiddenObjects;
+    public Sprite[] hiddenObjectsReactions;
 
     public Sprite[] objectiveSprites;
 
     public string[] objectiveDescriptionTexts;
     public string[] objectiveFoundTexts;
-    public string objectiveDescriptionFinishedText;
-    public string objectiveCaptionText;
-    public string levelText;
+    public string   objectiveDescriptionFinishedText;
+    public string   objectiveCaptionText;
+    public string   levelText;
 
     // FEED_AGENTS
     public GameObject[] hotdogAgents;
@@ -27,6 +28,10 @@ public class Level : MonoBehaviour {
     public GameObject[] silhouettes;
     public GameObject[] buildingStages;
     public GameObject popup;
+    public FingerController finger;
+    public Sprite popupConstructionImage;
+
+    public Sprite[] fannyReactions;
 
     [HideInInspector] public bool isReadyToBuild;
     public SpriteRenderer arrow;
@@ -47,6 +52,8 @@ public class Level : MonoBehaviour {
       foundParts      = 0;
       isReadyToBuild  = false;
       hotdogsLeft     = 5;
+
+      // finger.begin();
     }
 
     void Update(){
@@ -58,25 +65,55 @@ public class Level : MonoBehaviour {
 
     // FIND_HIDDEN_OBJECTS
 
-    public void setCurrentObjective(int currentObjectiveIndex) {
-        // Main main = GameObject.Find("Main").GetComponent<Main>();
+    /** check checkmarks on both map and right side ribbon
+    */
+    public void foundHiddenObjective(GameObject foundObjective){
+      GameObject checkmark = foundObjective.GetComponent<HiddenObject>().checkmark;
+      checkmark.SetActive(true); // on map
+      main.ui.objectiveCheckmarkPanels[Global.instance.currentHiddenIndex - 1].SetActive(true); // on right side ribbon
 
+      Invoke("presentBottomPopup", 3);
+    }
+
+    void presentBottomPopup(){
+      switch(Global.instance.gameState){
+        case Global.GameState.FIND_HIDDEN_OBJECTS:
+          main.ui.popupController.animateBottomPopup(
+            objectiveDescriptionTexts[Global.instance.currentHiddenIndex],
+            objectiveSprites[Global.instance.currentHiddenIndex]
+          );
+          break;
+
+        case Global.GameState.FEED_AGENTS:
+          break;
+
+        case Global.GameState.CONSTRUCT_BUILDING:
+          break;
+
+        case Global.GameState.FINSISHED:
+          break;
+      }
+    }
+
+    public void setCurrentObjective() {
+        int currentObjectiveIndex = Global.instance.currentHiddenIndex;
         // hidden objects on map
         for (int i = 0; i < hiddenObjects.Length; i++ ) {
-            bool chk = currentObjectiveIndex >= i + 1;
-            bool foundLastObj = currentObjectiveIndex >= hiddenObjects.Length;
-            //Debug.Log("index=" + i + " curObjIndex=" + currentObjectiveIndex + " check=" + chk);
-            GameObject checkmark = hiddenObjects[i].GetComponent<HiddenObject>().checkmark;
-            checkmark.SetActive(chk);
+          bool chk = currentObjectiveIndex >= i + 1;
+          bool foundLastObj = currentObjectiveIndex >= hiddenObjects.Length;
+          //Debug.Log("index=" + i + " curObjIndex=" + currentObjectiveIndex + " check=" + chk);
+          // GameObject checkmark = hiddenObjects[i].GetComponent<HiddenObject>().checkmark;
+          // checkmark.SetActive(chk);
 
-            if(chk){
-              string foundText = objectiveFoundTexts[i];
-              string nextObjective;
-              if(foundLastObj){
-                nextObjective = objectiveDescriptionFinishedText;
-              }else nextObjective = objectiveDescriptionTexts[i + 1];
-
+          if(chk){
+            string foundText = objectiveFoundTexts[i];
+            string nextObjective;
+            if(foundLastObj){
+              nextObjective = objectiveDescriptionFinishedText;
+            }else{
+              nextObjective = objectiveDescriptionTexts[i + 1];
             }
+          }
         }
 
         // UI of hidden objects
@@ -113,7 +150,7 @@ public class Level : MonoBehaviour {
       // // small ribbons on the right on the HUD
       Invoke("removeCheckmarksFromHiddenObjects", 2);
 
-      main.ui.showPopupObjectiveWithText(objectiveDescriptionFinishedText);
+      //main.ui.showPopupObjectiveWithText(objectiveDescriptionFinishedText);
       spawnHotdogAgent();
     }
 
@@ -158,9 +195,13 @@ public class Level : MonoBehaviour {
       if(Global.instance.gameState == Global.GameState.FEED_AGENTS){
         if(hotdogsLeft <= 0){ // last hotdog
           customer.GetComponent<HungryCustomer>().feed();
-          main.ui.showPopupObjectiveWithText("YAY! YOU FOUND AND FED ALL THE HUNGRY CUSTOMERS! NOW IT IS TIME TO BUILD");
+          main.ui.popupController.animateBottomPopup(
+            "YAY! You found them all. Now it is time to build",
+            popupConstructionImage
+          );
           Global.instance.gameState = Global.GameState.CONSTRUCT_BUILDING;
           arrow.enabled = true;
+          finger.begin();
         }else{ // if not last remove one from bottom (-1 because the HUD only contains 5)
           main.ui.objectiveCheckmarkPanels[hotdogsLeft - 1].SetActive(true);
           hotdogsLeft--;
@@ -213,7 +254,7 @@ public class Level : MonoBehaviour {
       // TODO : how to show that? (tapping finger?)
       if(foundParts >= requiredParts){
         isReadyToBuild = true;
-        // StartCoroutine(fadeInObject(smoke));
+        finger.begin();
       }
     }
 
@@ -239,6 +280,8 @@ public class Level : MonoBehaviour {
       foreach(GameObject obj in hiddenBuildingParts){
         obj.SetActive(false);
       }
+
+      finger.begin();
 
     }
 

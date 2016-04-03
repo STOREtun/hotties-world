@@ -8,7 +8,7 @@ public class HiddenBuildPart : MonoBehaviour {
 	public bool found;
 
 	private bool move;
-	private int speed = 20;
+	private int speed = 50;
 
 	// Use this for initialization
 	void Start () {

@@ -49,36 +49,55 @@ public class UI : MonoBehaviour {
     public GameObject notebookButtonPanel;
     public GameObject notebookButtonText;
 
-    public GameObject popupOverlay;
-    public GameObject popupText;
-    public Image popupImg;
+    public PopupController popupController;
 
-    public SpriteRenderer[] fannyReactions;
+    // popup overlay bottom
+    public GameObject bottomPopupOverlay;
+    public Image bottomPopupImg;
+    public Text bottomPopupText;
+
+    // popup overlay top
+    public GameObject topPopupOverlay;
+    public Text topPopupText;
+    public Image topPopupImage;
+
     public GameObject[] scoreObjs;
 
     private Main main = null;
 
-    public void showPopupObjectiveWithText(string text, Sprite img = null){
-      print("UI, showPopupObjectiveWithText " + text);
-      showMenu(false);
-      popupText.GetComponent<Text>().text = text;
+    public void showPopupObjectiveWithText(string text, Sprite img, string _secondText = null){
+      popupController.animateBottomPopupWithSecondText(text, _secondText, img);
+      // showMenu(false);
+      // secondText = _secondText;
+      //
+      // bottomPopupText.text = text;
+      //
+      // // if(secondText == null){
+      // //   nextButton.SetActive(false);
+      // // }else nextButton.SetActive(true);
+      //
+      // // TODO : scaling is not working well. A solution could be in code or image scaling
+      // if(img != null){
+      //   // present image along with text
+      //   bottomPopupImg.sprite = img;
+      //   bottomPopupImg.enabled = true;
+      // }
+      //
+      // // bottomPopupOverlay.GetComponent<Canvas>().enabled = true;
+      // bottomPopupOverlay.GetComponent<PopupController>().animateBottomPopup();
+    }
 
-      if(img != null){
-        // present image along with text
-        popupImg.sprite = img;
-        popupImg.enabled = true;
-      }
-
-      popupOverlay.GetComponent<Canvas>().enabled = true;
-      popupOverlay.GetComponent<PopupController>().animatePopup();
+    // next button is pressed, which means that we update the image and present new text
+    public void nextButtonPressed(){
+      popupController.bottomPopupImg.sprite = main.level.objectiveSprites[Global.instance.currentHiddenIndex];
+      popupController.presentSecondText();
     }
 
     public void showCalculatedScore(string msg, int score){
-      Debug.Log("UI, final score " + 3);
-      Sprite reaction = fannyReactions[score - 1].sprite;
-      popupImg.sprite = reaction;
-      popupText.GetComponent<Text>().text = msg;
-      popupOverlay.GetComponent<Canvas>().enabled = true;
+      Sprite reaction = main.level.fannyReactions[score - 1];
+      bottomPopupImg.sprite = reaction;
+      bottomPopupText.text = msg;
+      // bottomPopupOverlay.GetComponent<Canvas>().enabled = true;
 
       for(int i = 0; i < 3; i++){
         Image img = scoreObjs[i].GetComponent<Image>();
@@ -86,12 +105,11 @@ public class UI : MonoBehaviour {
         if((i + 1) <= score) img.color = new Color(1f, 1f, 1f, 1f);
       }
 
-      popupOverlay.GetComponent<PopupController>().animatePopup(true);
+      popupController.animateBottomPopup(msg, reaction);
     }
 
-    public void hidePopupObjective(){
-      popupOverlay.GetComponent<Canvas>().enabled = false;
-      // popupOverlay.SetActive(false);
+    public void hideBottomPopup(){
+      popupController.hideBottomPopup();
     }
 
     public void toggleMenu() {
@@ -123,7 +141,7 @@ public class UI : MonoBehaviour {
         showNotebook(mode, !notebookOverlayCanvas.activeSelf);
     }
     public void showNotebook(NotebookMode mode, bool show) {
-      //popupOverlay.GetComponent<Canvas>().enabled = false;
+      //topPopupOverlay.GetComponent<Canvas>().enabled = false;
 
       notebookMode = show ? mode : NotebookMode.CLOSED;
       notebookOverlayCanvas.SetActive(show);

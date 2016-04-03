@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityConstants;
-using Soomla.Store;
 using SimpleJSON;
 
 public class GameScene : MonoBehaviour {
@@ -49,7 +48,7 @@ public class GameScene : MonoBehaviour {
       if (Global.instance.currentHiddenIndex < 0 || Global.instance.currentHiddenIndex >= main.level.objectiveSprites.Length)
           Global.instance.currentHiddenIndex = 0;
 
-      main.levelObj.GetComponent<Level>().setCurrentObjective(Global.instance.currentHiddenIndex);
+      main.levelObj.GetComponent<Level>().setCurrentObjective();
 
       //init ui stuff
       main.ui.currentObjectivePanel.GetComponent<Image>().sprite = main.level.objectiveSprites[Global.instance.currentHiddenIndex];
@@ -60,7 +59,7 @@ public class GameScene : MonoBehaviour {
       // data for the state CONSTRUCT_BUILDING
       tapsOnSmoke = 0;
 
-      main.ui.showPopupObjectiveWithText(main.level.levelText);
+      main.ui.showPopupObjectiveWithText(main.level.levelText, null, main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex]);
 
       // Soomla store event listeners. TODO : delete soomla
       // StoreEvents.OnMarketPurchase += onMarketPurchase;
@@ -169,17 +168,22 @@ public class GameScene : MonoBehaviour {
                 if (pressedObject == "Menu") { // for some reason it does not reach the 'MenuButton', but Menu works just fine
                     main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
                     return;
-                }else if(pressedObject == "ClosePopupOverlayButton"){
-                  main.ui.hidePopupObjective();
+                }else if(res.gameObject.tag == UnityConstants.Tags.OVERLAY_BTN_CLOSE){
+                  if(Global.instance.gameState == Global.GameState.FIND_HIDDEN_OBJECTS){
+                    main.level.setCurrentObjective();
+                  }
+                  main.ui.hideBottomPopup();
+                }else if(res.gameObject.tag == UnityConstants.Tags.OVERLAY_BTN_NEXT){
+                    main.ui.nextButtonPressed();
                 }else if (pressedObject == "SmallHintPack") {
-                  Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_SMALL_PRODUCT_ID, "");
+                  //Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_SMALL_PRODUCT_ID, "");
                   Global.instance.reloadNumberOfHints();
                   //print("GameScene, TODO: buy small hint pack");
                     // main.ui.showMenu(false);
                     // main.ui.showShop(true);
                     // return;
                 }else if(pressedObject == "BigHintPack"){
-                  Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_LARGE_PRODUCT_ID, "");
+                  //Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_LARGE_PRODUCT_ID, "");
                   Global.instance.reloadNumberOfHints();
                   //print("GameScene, TODO: buy big hint pack");
                 }else if (pressedObject == "BuyButton") {
@@ -325,14 +329,34 @@ public class GameScene : MonoBehaviour {
 
                 if (Global.instance.currentHiddenIndex == hiddenObjectIndex) {
                     Global.instance.updateCurrentHiddenIndex();
-                    //Global.instance.currentHiddenIndex++;
-                    main.levelObj.GetComponent<Level>().setCurrentObjective(Global.instance.currentHiddenIndex);
+
                     // check if we found all the hidden objects
                     if (Global.instance.currentHiddenIndex >= level.hiddenObjects.Length){
-                        // found the last hidden object and move on to next part of the level
-                        Global.instance.changeGameState(Global.GameState.FEED_AGENTS);
-                        // present next state to the player and clear the small ribbons to the right
-                        main.level.prepareFeedingState();
+                      main.ui.popupController.animateTopPopup(
+                        main.level.objectiveFoundTexts[Global.instance.currentHiddenIndex - 1],
+                        main.level.hiddenObjectsReactions[Global.instance.currentHiddenIndex - 1]
+                      );
+                      main.ui.objectiveCheckmarkPanels[Global.instance.currentHiddenIndex - 1].SetActive(true);
+
+                      // found the last hidden object and move on to next part of the level
+                      Global.instance.changeGameState(Global.GameState.FEED_AGENTS);
+                      // present next state to the player and clear the small ribbons to the right
+
+                      main.level.prepareFeedingState();
+
+                      main.ui.popupController.animateBottomPopup(
+                        main.level.objectiveDescriptionFinishedText,
+                        main.level.fannyReactions[0]
+                      );
+                    }else{ // there are still objectives to be found - present the next
+                      // check the checkmark on the map
+                      main.level.foundHiddenObjective(cols[i].gameObject);
+
+                      // initiate the found reaction
+                      main.ui.popupController.animateTopPopup(
+                        main.level.objectiveFoundTexts[Global.instance.currentHiddenIndex - 1],
+                        main.level.hiddenObjectsReactions[Global.instance.currentHiddenIndex - 1]
+                      );
                     }
                 break;
               }
@@ -363,8 +387,9 @@ public class GameScene : MonoBehaviour {
                 main.level.initHiddenBuildParts();
                 shouldInitBuildParts = false;
 
-                // hide the arrow
+                // hide the arrow and finger
                 main.level.arrow.enabled = false;
+                main.level.finger.stop();
               }
 
             }else if(clickedObj.tag == UnityConstants.Tags.HIDDEN_BUILD_PART){
@@ -385,8 +410,8 @@ public class GameScene : MonoBehaviour {
 
               // enough taps has been done do complete construction
               if(tapsOnSmoke >= REQUIRED_TAPS){
+                main.level.finger.stop();
                 StartCoroutine(main.level.finishBuilding());
-                print("Level, enable the construction! You are done!");
                 Global.instance.changeGameState(Global.GameState.FINSISHED);
 
                 // StartCoroutine(main.level.fadeOutObject(main.level.smoke));
@@ -489,20 +514,20 @@ public class GameScene : MonoBehaviour {
       directly match the string ids and therefore the contains method was used.
       Otherwise the implementation would use a switch case
     */
-    public void onMarketPurchase(PurchasableVirtualItem pvi, string payload, Dictionary<string, string> extra) {
-      Debug.Log("GameScene, we are detecting a buy from within GameScene!");
-
-      JSONObject item = pvi.toJSONObject();
-      string itemIDString = item["itemId"].ToString();
-
-      if(itemIDString.Contains("hints_small_id")){
-        Global.instance.updatePlayerPrefWithInt("hintcount", 5);
-      }else if(itemIDString.Contains("hints_large_id")){
-        Global.instance.updatePlayerPrefWithInt("hintcount", 20);
-      }
-
-      main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
-      main.ui.showShop(false);
-      main.ui.showHUD(true);
-    }
+    // public void onMarketPurchase(PurchasableVirtualItem pvi, string payload, Dictionary<string, string> extra) {
+    //   Debug.Log("GameScene, we are detecting a buy from within GameScene!");
+    //
+    //   JSONObject item = pvi.toJSONObject();
+    //   string itemIDString = item["itemId"].ToString();
+    //
+    //   if(itemIDString.Contains("hints_small_id")){
+    //     Global.instance.updatePlayerPrefWithInt("hintcount", 5);
+    //   }else if(itemIDString.Contains("hints_large_id")){
+    //     Global.instance.updatePlayerPrefWithInt("hintcount", 20);
+    //   }
+    //
+    //   main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
+    //   main.ui.showShop(false);
+    //   main.ui.showHUD(true);
+    // }
 }
