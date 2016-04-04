@@ -50,7 +50,7 @@ public class Global  {
 
         //default values
         currentHiddenIndex  = 0;
-        gameState           = GameState.FIND_HIDDEN_OBJECTS; // GameState.CONSTRUCT_BUILDING; // 
+        gameState           = GameState.FIND_HIDDEN_OBJECTS; // GameState.CONSTRUCT_BUILDING; 
 
         currentLevelIndex   = PlayerPrefs.GetInt("currentlevelindex", 0);
         completedLevels     = PlayerPrefs.GetInt("completedLevels", 0);

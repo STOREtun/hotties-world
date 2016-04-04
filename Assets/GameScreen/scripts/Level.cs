@@ -30,6 +30,7 @@ public class Level : MonoBehaviour {
     public GameObject popup;
     public FingerController finger;
     public Sprite popupConstructionImage;
+    public SmokeAnimationController smokeController;
 
     public Sprite[] fannyReactions;
 
@@ -53,7 +54,8 @@ public class Level : MonoBehaviour {
       isReadyToBuild  = false;
       hotdogsLeft     = 5;
 
-      // finger.begin();
+      finger.stop();
+      smokeController.stop();
     }
 
     void Update(){
@@ -201,7 +203,7 @@ public class Level : MonoBehaviour {
           );
           Global.instance.gameState = Global.GameState.CONSTRUCT_BUILDING;
           arrow.enabled = true;
-          finger.begin();
+          finger.begin(FingerController.Tempo.SLOW);
         }else{ // if not last remove one from bottom (-1 because the HUD only contains 5)
           main.ui.objectiveCheckmarkPanels[hotdogsLeft - 1].SetActive(true);
           hotdogsLeft--;
@@ -254,7 +256,7 @@ public class Level : MonoBehaviour {
       // TODO : how to show that? (tapping finger?)
       if(foundParts >= requiredParts){
         isReadyToBuild = true;
-        finger.begin();
+        finger.begin(FingerController.Tempo.FAST);
       }
     }
 
@@ -268,7 +270,7 @@ public class Level : MonoBehaviour {
 
     // TODO : animate the smoke
     public void animateSmoke(){
-
+      smokeController.begin();
     }
 
     public void prepareBuildingSmoke(){
@@ -276,13 +278,13 @@ public class Level : MonoBehaviour {
       StartCoroutine(fadeInObject(buildingStages[1]));
       buildingStages[0].gameObject.SetActive(false);
 
+      // animation part of smoke
+      smokeController.begin();
+
       // deactivate the build parts as they are used
       foreach(GameObject obj in hiddenBuildingParts){
         obj.SetActive(false);
       }
-
-      finger.begin();
-
     }
 
     // initate the final animation between the building stages
