@@ -36,7 +36,7 @@ public class Main : MonoBehaviour {
     //            Example: Screen script that handles input, networking, loading, etc
 
 
-
+    public Purchaser purchaser;
     public GameObject[] levels; //set by inspector
 
     public GameObject loadLevel(int levelIndex) {

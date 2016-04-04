@@ -5,10 +5,12 @@ using UnityEngine.Purchasing;
 
 public class Purchaser : MonoBehaviour, IStoreListener {
 
-	private static IStoreController m_StoreController;         	// Reference to the Purchasing system.
+	private static IStoreController 	m_StoreController;         	// Reference to the Purchasing system.
 	private static IExtensionProvider m_StoreExtensionProvider;
 
-	private static string kProductIDConsumable 			= "consumable";
+	private static string smallHintPackID = "smallHintPack";
+	private static string bigHintPackID		= "bigHintPack";
+
 	private static string bigHintPack_consumeable 	= "com.huusmann.hottiesworld.largehintpack20hints"; // Apple App Store identifier for the consumable product.
 	private static string smallHintPack_consumeable = "com.huusmann.hottiesworld.smallhintpack5hints";
 
@@ -34,10 +36,13 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 		ConfigurationBuilder builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
 
 		// Add a product to sell / restore by way of its identifier, associating the general identifier with its store-specific identifiers.
-		builder.AddProduct(kProductIDConsumable, ProductType.Consumable, new IDs(){
-			{bigHintPack_consumeable, 	AppleAppStore.Name },
+		builder.AddProduct(smallHintPackID, ProductType.Consumable, new IDs(){
 			{smallHintPack_consumeable, AppleAppStore.Name },
 		}); // Continue adding the non-consumable product.
+
+		builder.AddProduct(bigHintPackID, ProductType.Consumable, new IDs(){
+			{bigHintPack_consumeable, AppleAppStore.Name},
+		});
 
 		UnityPurchasing.Initialize(this, builder);
 	}
@@ -47,9 +52,9 @@ public class Purchaser : MonoBehaviour, IStoreListener {
     return m_StoreController != null && m_StoreExtensionProvider != null;
 	}
 
-	public void buyConsumable(){
+	public void buyConsumable(string consumable){
     // Buy the consumable product using its general identifier. Expect a response either through ProcessPurchase or OnPurchaseFailed asynchronously.
-    buyProductID(kProductIDConsumable);
+    buyProductID(consumable);
 	}
 
 	void buyProductID(string productId){
@@ -81,7 +86,10 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 
 	// IStoreListener
 	public void OnInitialized(IStoreController controller, IExtensionProvider extensions){
-
+		// Overall Purchasing system, configured with products for this application.
+    m_StoreController = controller;
+    // Store specific subsystem, for accessing device-specific store features.
+    m_StoreExtensionProvider = extensions;
 	}
 
 	public void OnInitializeFailed(InitializationFailureReason error){
@@ -89,6 +97,14 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 	}
 
 	public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args) {
+		if (String.Equals(args.purchasedProduct.definition.id, smallHintPackID, StringComparison.Ordinal)){
+			Global.instance.updateHintcountWith(5);
+		}else if(String.Equals(args.purchasedProduct.definition.id, bigHintPackID, StringComparison.Ordinal)){
+			Global.instance.updateHintcountWith(20);
+		}else{
+			print("Purchaser, nothing was bought");
+		}
+
 		return PurchaseProcessingResult.Complete;
 	}
 

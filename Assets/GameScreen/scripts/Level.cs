@@ -273,10 +273,19 @@ public class Level : MonoBehaviour {
       smokeController.begin();
     }
 
+    // TODO : make a common method to show the smoke.
+    // maybe let the smoke be a part for itself, and then go through the stages
+    // to build the final construction (like India right now)
     public void prepareBuildingSmoke(){
-      // [1] = smoking stage
-      StartCoroutine(fadeInObject(buildingStages[1]));
-      buildingStages[0].gameObject.SetActive(false);
+      if(Global.instance.currentLevelIndex == 0){ // greenland
+        // [1] = smoking stage
+        StartCoroutine(fadeInObject(buildingStages[1]));
+        buildingStages[0].gameObject.SetActive(false);
+      }else{ // India
+        smokeController.showBackgroundSmoke();
+        buildingStages[1].gameObject.SetActive(false);
+      }
+
 
       // animation part of smoke
       smokeController.begin();
@@ -288,19 +297,27 @@ public class Level : MonoBehaviour {
     }
 
     // initate the final animation between the building stages
+    // TODO : same as prepareBuildingSmoke
     public IEnumerator finishBuilding(){
-      StartCoroutine(fadeInObject(buildingStages[2]));
-      StartCoroutine(fadeOutObject(buildingStages[1]));
+      if(Global.instance.currentLevelIndex == 0){ // greenland
+        StartCoroutine(fadeInObject(buildingStages[2]));
+        StartCoroutine(fadeOutObject(buildingStages[1]));
 
-      yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.5f);
 
-      StartCoroutine(fadeInObject(buildingStages[3]));
-      StartCoroutine(fadeOutObject(buildingStages[2]));
+        StartCoroutine(fadeInObject(buildingStages[3]));
+        StartCoroutine(fadeOutObject(buildingStages[2]));
 
-      yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.5f);
 
-      StartCoroutine(fadeInObject(buildingStages[4]));
-      StartCoroutine(fadeOutObject(buildingStages[3]));
+        StartCoroutine(fadeInObject(buildingStages[4]));
+        StartCoroutine(fadeOutObject(buildingStages[3]));
+
+      }else{ // India
+        buildingStages[0].gameObject.SetActive(false);
+        StartCoroutine(fadeOutObject(buildingStages[2]));
+        StartCoroutine(fadeInObject(buildingStages[3]));
+      }
     }
 
     public IEnumerator fadeInObject(GameObject objectToFade){

@@ -59,7 +59,11 @@ public class GameScene : MonoBehaviour {
       // data for the state CONSTRUCT_BUILDING
       tapsOnSmoke = 0;
 
-      main.ui.showPopupObjectiveWithText(main.level.levelText, null, main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex]);
+      main.ui.showPopupObjectiveWithText(
+        main.level.levelText,
+        main.level.fannyReactions[0],
+        main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex]
+      );
 
       // Soomla store event listeners. TODO : delete soomla
       // StoreEvents.OnMarketPurchase += onMarketPurchase;
@@ -176,15 +180,15 @@ public class GameScene : MonoBehaviour {
                 }else if(res.gameObject.tag == UnityConstants.Tags.OVERLAY_BTN_NEXT){
                     main.ui.nextButtonPressed();
                 }else if (pressedObject == "SmallHintPack") {
-                  //Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_SMALL_PRODUCT_ID, "");
-                  Global.instance.reloadNumberOfHints();
+                  main.purchaser.buyConsumable("smallHintPack");
+                  Invoke("updateHintNumber", 3);
                   //print("GameScene, TODO: buy small hint pack");
                     // main.ui.showMenu(false);
                     // main.ui.showShop(true);
                     // return;
                 }else if(pressedObject == "BigHintPack"){
-                  //Global.instance.iapManager.buyItem(HottieIAPAssets.HINTS_LARGE_PRODUCT_ID, "");
-                  Global.instance.reloadNumberOfHints();
+                  main.purchaser.buyConsumable("bigHintPack");
+                  Invoke("updateHintNumber", 3);
                   //print("GameScene, TODO: buy big hint pack");
                 }else if (pressedObject == "BuyButton") {
                   Global.instance.iapManager.buyItem(res.gameObject.tag, "not_used"); //Payload (second argument) should not be used like this
@@ -414,6 +418,9 @@ public class GameScene : MonoBehaviour {
                 StartCoroutine(main.level.finishBuilding());
                 Global.instance.changeGameState(Global.GameState.FINSISHED);
 
+                main.ui.finish();
+
+
                 // StartCoroutine(main.level.fadeOutObject(main.level.smoke));
                 // StartCoroutine(main.level.fadeInObject(main.level.finalBuilding));
 
@@ -432,14 +439,14 @@ public class GameScene : MonoBehaviour {
 
     private void calculateScoreBasedOnTime(float time){
       // default is one golden hotdog stand
-      string msg  = "You did so well! Here you have ONE golden hotdog stand for your good work!";
+      string msg  = "Good job!";
       int score   = 1;
 
-      if(time < 60){
-        msg   = "You did so well! Here you have THREE golden hotdog stand for your good work!";
+      if(time < 100){
+        msg   = "Good job!";
         score = 3;
-      }else if(time < 120){
-        msg   = "You did so well! Here you have TWO golden hotdog stand for your good work!";
+      }else if(time < 150){
+        msg   = "Good job!";
         score = 2;
       }
 
@@ -530,4 +537,8 @@ public class GameScene : MonoBehaviour {
     //   main.ui.showShop(false);
     //   main.ui.showHUD(true);
     // }
+
+    public void updateHintNumber(){
+      main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
+    }
 }

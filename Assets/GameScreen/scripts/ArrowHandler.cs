@@ -13,6 +13,8 @@ public class ArrowHandler : MonoBehaviour {
 	private float startTime;
 	private const float speed = 0.2f;
 
+	private bool stop = false;
+
 	// Use this for initialization
 	void Start () {
 		cam = Camera.main;
@@ -25,6 +27,8 @@ public class ArrowHandler : MonoBehaviour {
 	// TODO : stop the arrow when within distance (x) of target area
 	// Update is called once per frame
 	void Update () {
+		float distance = Vector3.Distance(pointTo.position, transform.position);
+
 		// rotate the arrow to look at target
 		Quaternion rotation = Quaternion.LookRotation (pointTo.position - transform.position, transform.TransformDirection(Vector3.up));
     transform.rotation = new Quaternion(0, 0, rotation.z, rotation.w);
@@ -39,7 +43,7 @@ public class ArrowHandler : MonoBehaviour {
 			// in bounds of screen
 			float distCovered = (Time.time - startTime) * speed;
       float fracJourney = (distCovered / journeyLength) / 10;
-			transform.position = Vector3.Lerp(transform.position, pointTo.position, fracJourney);
+			if(distance >= 10)	transform.position = Vector3.Lerp(transform.position, pointTo.position, fracJourney);
 		}else{
 			// out of bounds - correcting the position of the arrow
 			Vector3 newPos = Vector3.zero;
@@ -62,7 +66,6 @@ public class ArrowHandler : MonoBehaviour {
 			// deactivate arrow if within range of pointTo (target)
 			// …
 		}
-		float distance = Vector3.Distance(pointTo.position, transform.position);
 	}
 
 	public void deactivateArrow(){

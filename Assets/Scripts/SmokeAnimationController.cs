@@ -3,6 +3,7 @@ using System.Collections;
 
 public class SmokeAnimationController : MonoBehaviour {
 
+	public GameObject smokeBackground;
 	public GameObject smokePart_00;
 	public GameObject smokePart_01;
 	public GameObject smokePart_02;
@@ -38,7 +39,7 @@ public class SmokeAnimationController : MonoBehaviour {
 
 	public void begin(){
 		if(animate) return;
-		
+
 		fadeInSmoke();
 		animate = true;
 
@@ -48,6 +49,11 @@ public class SmokeAnimationController : MonoBehaviour {
 
 	public void stop(){
 		fadeOutSmoke();
+	}
+
+	public void showBackgroundSmoke(){
+		smokeBackground.SetActive(true);
+		StartCoroutine(fadeInObject(smokeBackground));
 	}
 
 	public void fadeInSmoke(){

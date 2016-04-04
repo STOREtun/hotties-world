@@ -63,28 +63,18 @@ public class UI : MonoBehaviour {
 
     public GameObject[] scoreObjs;
 
+    public Sprite done;
+
     private Main main = null;
+
+    public void finish(){
+      Color color = new Color(1, 1, 1, 1);
+      currentObjectivePanel.GetComponent<Image>().color = color;
+      currentObjectivePanel.GetComponent<Image>().sprite = done;
+    }
 
     public void showPopupObjectiveWithText(string text, Sprite img, string _secondText = null){
       popupController.animateBottomPopupWithSecondText(text, _secondText, img);
-      // showMenu(false);
-      // secondText = _secondText;
-      //
-      // bottomPopupText.text = text;
-      //
-      // // if(secondText == null){
-      // //   nextButton.SetActive(false);
-      // // }else nextButton.SetActive(true);
-      //
-      // // TODO : scaling is not working well. A solution could be in code or image scaling
-      // if(img != null){
-      //   // present image along with text
-      //   bottomPopupImg.sprite = img;
-      //   bottomPopupImg.enabled = true;
-      // }
-      //
-      // // bottomPopupOverlay.GetComponent<Canvas>().enabled = true;
-      // bottomPopupOverlay.GetComponent<PopupController>().animateBottomPopup();
     }
 
     // next button is pressed, which means that we update the image and present new text
