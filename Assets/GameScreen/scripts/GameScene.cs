@@ -173,6 +173,9 @@ public class GameScene : MonoBehaviour {
                     main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
                     return;
                 }else if(res.gameObject.tag == UnityConstants.Tags.OVERLAY_BTN_CLOSE){
+                  if(Global.instance.gameState == Global.GameState.FINSISHED)
+                    Application.LoadLevel(0); // go back to world menu
+
                   if(Global.instance.gameState == Global.GameState.FIND_HIDDEN_OBJECTS){
                     main.level.setCurrentObjective();
                   }
@@ -209,14 +212,20 @@ public class GameScene : MonoBehaviour {
                           switch(Global.instance.gameState){
                             case Global.GameState.FIND_HIDDEN_OBJECTS:
                               hiddenGameObj = main.level.hiddenObjects[Global.instance.currentHiddenIndex];
-                              break;
+                            break;
+
                             case Global.GameState.FEED_AGENTS:
                               hiddenGameObj = main.level.currentHungryCustomer;
-                              break;
+                            break;
+
                             case Global.GameState.CONSTRUCT_BUILDING:
+                              // if we are ready to build the hint is deactivated
+                              if(main.level.isReadyToBuild) hiddenGameObj = null;
+
                               hiddenGameObj = main.level.getNextHiddenBuildPart();
-                              break;
+                            break;
                           }
+
                           if(hiddenGameObj != null){
                             setLerpPos(hiddenGameObj.transform.position);
                             Global.instance.hintCount--;

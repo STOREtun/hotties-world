@@ -14,6 +14,9 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 	private static string bigHintPack_consumeable 	= "com.huusmann.hottiesworld.largehintpack20hints"; // Apple App Store identifier for the consumable product.
 	private static string smallHintPack_consumeable = "com.huusmann.hottiesworld.smallhintpack5hints";
 
+	private static string android_bigHintPack_consumeable 	= "com.fanny_posselt.hotdogheroes.largehintpack20hints";
+	private static string android_smallHintPack_consumeable = "com.fanny_posselt.hotdogheroes.smallhintpack5hints";
+
 	// TODO : need two hint packages for google play store
 
 	// Use this for initialization
@@ -42,6 +45,11 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 
 		builder.AddProduct(bigHintPackID, ProductType.Consumable, new IDs(){
 			{bigHintPack_consumeable, AppleAppStore.Name},
+			{android_bigHintPack_consumeable,  GooglePlay.Name},
+		});
+		builder.AddProduct(smallHintPackID, ProductType.Consumable, new IDs(){
+			{smallHintPack_consumeable, AppleAppStore.Name},
+			{android_smallHintPack_consumeable,  GooglePlay.Name},
 		});
 
 		UnityPurchasing.Initialize(this, builder);
