@@ -21,7 +21,9 @@ public class Level : MonoBehaviour {
     public GameObject[] hotdogAgents;
     public GameObject currentHungryCustomer;
     [HideInInspector] private string currentHungryCustomerString;
-    private int hotdogsLeft;
+    public int hungryCustomersFound;
+    public bool startedCountDown;
+    public float timeLeft;
 
     // CONSTRUCT_BUILDING
     public GameObject[] hiddenBuildingParts;
@@ -31,6 +33,8 @@ public class Level : MonoBehaviour {
     public FingerController finger;
     public Sprite popupConstructionImage;
     public SmokeAnimationController smokeController;
+    public float timeSpend;
+    public bool countUp;
 
     public Sprite[] fannyReactions;
 
@@ -44,23 +48,51 @@ public class Level : MonoBehaviour {
 
     private Main main;
 
+    private GUIStyle guiStyle;
+
     void Awake(){
       main = GameObject.Find("Main").GetComponent<Main>();
     }
 
     void Start(){
-      requiredParts   = hiddenBuildingParts.Length;
-      foundParts      = 0;
-      isReadyToBuild  = false;
-      hotdogsLeft     = 5;
+      // FEED_AGENTS
+      startedCountDown  = false;
+      hungryCustomersFound = 0;
 
+      // CONSTRUCT_BUILDING
+      countUp           = false;
+      timeSpend         = 0;
+      requiredParts     = hiddenBuildingParts.Length;
+      foundParts        = 0;
+      isReadyToBuild    = false;
+
+      guiStyle = new GUIStyle();
+      guiStyle.fontSize = 60;
+      guiStyle.normal.textColor = Color.white;
+
+      // make sure there is no animation on start of level
       finger.stop();
       smokeController.stop();
     }
 
     void Update(){
-      if(Global.instance.gameState == Global.GameState.CONSTRUCT_BUILDING){
-        // TODO : stop the smoke animation
+      if(startedCountDown){
+        timeLeft -= Time.deltaTime;
+        if(timeLeft <= 0) foundHungryAgent();
+      }
+
+      if(countUp){
+        timeSpend += Time.deltaTime;
+      }
+    }
+
+    void OnGUI(){
+      if(startedCountDown){
+        GUI.Box(new Rect(10, 10, 70, 70), "");
+        GUI.Label(new Rect(10, 10, 100, 100), ((int) timeLeft).ToString(), guiStyle);
+      }else if(countUp){
+        GUI.Box(new Rect(10, 10, 80, 70), "");
+        GUI.Label(new Rect(10, 10, 100, 100), ((int) timeSpend).ToString(), guiStyle);
       }
     }
 
@@ -148,12 +180,16 @@ public class Level : MonoBehaviour {
 
     // remove the images of the hidden objects from previous gamestate
     public void prepareFeedingState(){
-      // Main main = GameObject.Find("Main").GetComponent<Main>();
       // // small ribbons on the right on the HUD
-      Invoke("removeCheckmarksFromHiddenObjects", 2);
+      Invoke("removeCheckmarksFromHiddenObjects", 3);
 
       //main.ui.showPopupObjectiveWithText(objectiveDescriptionFinishedText);
       spawnHotdogAgent();
+    }
+
+    public void startCountDown(){
+      startedCountDown = true;
+      timeLeft = 60;
     }
 
     void removeCheckmarksFromHiddenObjects(){
@@ -183,6 +219,9 @@ public class Level : MonoBehaviour {
         hotdogAgents = list.ToArray();
         currentHungryCustomer = customer;
         currentHungryCustomerString = customer.GetComponent<SpriteRenderer>().sprite.name;
+      }else{ // found them all
+        timeLeft = 0;
+        foundHungryAgent();
       }
     }
 
@@ -190,26 +229,29 @@ public class Level : MonoBehaviour {
         a hungry customer
         TODO : rotate the arrow correctly
     */
-    public void foundHungryAgent(GameObject customer){
+    public void foundHungryAgent(GameObject customer = null){
       // Main main = GameObject.Find("Main").GetComponent<Main>();
 
       // check if are in correct state
       if(Global.instance.gameState == Global.GameState.FEED_AGENTS){
-        if(hotdogsLeft <= 0){ // last hotdog
-          customer.GetComponent<HungryCustomer>().feed();
+        if(timeLeft <= 0){ // time is up
+          if(customer != null) customer.GetComponent<HungryCustomer>().feed();
+
           main.ui.popupController.animateBottomPopup(
-            "YAY! You found them all. Now it is time to build",
+            "Good job! Now it is time to build! How fast can you build a cinema? The timer will start when you click the building area.",
             popupConstructionImage
           );
           Global.instance.gameState = Global.GameState.CONSTRUCT_BUILDING;
           arrow.enabled = true;
           finger.begin(FingerController.Tempo.SLOW);
+
+          startedCountDown = false;
         }else{ // if not last remove one from bottom (-1 because the HUD only contains 5)
-          main.ui.objectiveCheckmarkPanels[hotdogsLeft - 1].SetActive(true);
-          hotdogsLeft--;
+          //main.ui.objectiveCheckmarkPanels[hotdogsLeft - 1].SetActive(true);
+          hungryCustomersFound++;
 
+          // change image
           customer.GetComponent<HungryCustomer>().feed();
-
           // spawn new
           spawnHotdogAgent();
         }
@@ -217,6 +259,10 @@ public class Level : MonoBehaviour {
     }
 
     // CONSTRUCT_BUILDING
+
+    public void startTimerForConstruction(){
+      countUp = true;
+    }
 
     public GameObject getNextHiddenBuildPart(){
       foreach(GameObject obj in hiddenBuildingParts){

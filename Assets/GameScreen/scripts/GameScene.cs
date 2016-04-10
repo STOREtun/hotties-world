@@ -179,6 +179,13 @@ public class GameScene : MonoBehaviour {
                   if(Global.instance.gameState == Global.GameState.FIND_HIDDEN_OBJECTS){
                     main.level.setCurrentObjective();
                   }
+
+                  if(Global.instance.gameState == Global.GameState.FEED_AGENTS){
+                    // initiate countdown if not already initiated
+                    if(!main.level.startedCountDown){
+                      main.level.startCountDown();
+                    }
+                  }
                   main.ui.hideBottomPopup();
                 }else if(res.gameObject.tag == UnityConstants.Tags.OVERLAY_BTN_NEXT){
                     main.ui.nextButtonPressed();
@@ -400,6 +407,8 @@ public class GameScene : MonoBehaviour {
                 main.level.initHiddenBuildParts();
                 shouldInitBuildParts = false;
 
+                main.level.startTimerForConstruction();
+
                 // hide the arrow and finger
                 main.level.arrow.enabled = false;
                 main.level.finger.stop();
@@ -424,6 +433,7 @@ public class GameScene : MonoBehaviour {
               // enough taps has been done do complete construction
               if(tapsOnSmoke >= REQUIRED_TAPS){
                 main.level.finger.stop();
+                main.level.countUp = false;
                 StartCoroutine(main.level.finishBuilding());
                 Global.instance.changeGameState(Global.GameState.FINSISHED);
 
@@ -433,6 +443,8 @@ public class GameScene : MonoBehaviour {
                 // StartCoroutine(main.level.fadeOutObject(main.level.smoke));
                 // StartCoroutine(main.level.fadeInObject(main.level.finalBuilding));
 
+                // score is based on foundHungryCustomers and spendTime
+
                 Invoke("initCalculationOfScore", 3);
               }
             }
@@ -441,9 +453,13 @@ public class GameScene : MonoBehaviour {
     }
 
     private void initCalculationOfScore(){
-      float time = Time.time; // total time to complete the level
-      calculateScoreBasedOnTime(time);
-      Debug.Log("GameScene, time " + time);
+      int customersFound  = main.level.hungryCustomersFound;
+      int timeToBuild     = (int) main.level.timeSpend;
+
+      int score = timeToBuild - customersFound;
+
+      calculateScoreBasedOnTime(score);
+      Debug.Log("GameScene, score " + score);
     }
 
     private void calculateScoreBasedOnTime(float time){
@@ -451,10 +467,10 @@ public class GameScene : MonoBehaviour {
       string msg  = "Good job!";
       int score   = 1;
 
-      if(time < 100){
+      if(time < 50){
         msg   = "Good job!";
         score = 3;
-      }else if(time < 150){
+      }else if(time < 70){
         msg   = "Good job!";
         score = 2;
       }
