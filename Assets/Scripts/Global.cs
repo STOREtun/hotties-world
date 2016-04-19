@@ -103,25 +103,16 @@ public class Global  {
 
     public void updateCurrentHiddenIndex(){
       currentHiddenIndex++;
-      // levelData.SetField("currentHiddenIndex", currentHiddenIndex);
-      // updateLevelDataInPlayerPrefs();
     }
 
     public void changeGameState(GameState newState){
       gameState = newState;
-      // levelData.SetField("gameState", gameState.ToString());
-      // updateLevelDataInPlayerPrefs();
     }
 
     public int getCurrentHiddenIndex(){
       return currentHiddenIndex;
-      // string index = levelData.GetField("currentHiddenIndex").ToString();
-      // return int.Parse(index);
     }
 
-    /** Maybe not the right place for manipulating data. But this way we keep custom
-      manipulation of PlayerPrefs in one place.
-    */
     public void updatePlayerPrefWithInt(string pref, int value){
       int currentValue = PlayerPrefs.GetInt(pref);
       PlayerPrefs.SetInt(pref, currentValue + value);
@@ -144,39 +135,13 @@ public class Global  {
         otherwise return 0
     */
     public int getScoreForLevel(int level){
-      int i_score;
-
-      string _scores = PlayerPrefs.GetString("scores", "");
-
-      JSONObject scores = new JSONObject(_scores);
-      if(scores.HasField("levelScore_"+level)){
-        string score = scores.GetField("levelScore_"+level).ToString();
-        i_score = int.Parse(score);
-      }else i_score = 0;
-
-      Debug.Log("Global, Retuns " + i_score + " for level " + level);
-
-      return i_score;
+      return PlayerPrefs.GetInt("levelScore_"+currentLevelIndex, 0);
     }
 
     public void saveScoreAndCompleteLevel(int score){
-      // TODO : something is wrong. The two level strins does not match
-      // possible solution could be to save an int of the score of each level
-      JSONObject scores = new JSONObject(PlayerPrefs.GetString("scores", ""));
-
-      bool updateScore;
-      if(scores.HasField("levelScore_"+currentLevelIndex)){
-        string previousScore = scores.GetField("levelScore_"+currentLevelIndex).ToString();
-        if(score > int.Parse(previousScore)){
-          updateScore = true;
-        }else updateScore = false;
-      }else updateScore = true;
-
-
-      if(updateScore){
-        scores.AddField("levelScore_"+currentLevelIndex, score);
-        PlayerPrefs.SetString("scores", scores.ToString());
-        PlayerPrefs.SetInt("completedLevels", completedLevels);
+      int currentScore = PlayerPrefs.GetInt("levelScore_"+currentLevelIndex, 0);
+      if(score > currentScore){ // better score, therefore we update it
+          PlayerPrefs.SetInt("levelScore_"+currentLevelIndex, score);
       }
 
       // only increment if is first time playing the level
@@ -184,9 +149,6 @@ public class Global  {
         completedLevels++;
         PlayerPrefs.SetInt("completedLevels", completedLevels);
       }
-
-      //
-
     }
 
     /** Old levelData - the need to save progress is no longer needed

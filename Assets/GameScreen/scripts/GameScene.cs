@@ -200,6 +200,8 @@ public class GameScene : MonoBehaviour {
                   main.purchaser.buyConsumable("bigHintPack");
                   Invoke("updateHintNumber", 3);
                   //print("GameScene, TODO: buy big hint pack");
+                }else if(pressedObject == "RestorePurchase"){
+                  main.purchaser.restorePurchases();
                 }else if (pressedObject == "BuyButton") {
                   Global.instance.iapManager.buyItem(res.gameObject.tag, "not_used"); //Payload (second argument) should not be used like this
                 }else if (pressedObject == "CurrentObjectivePanel") {
@@ -464,14 +466,14 @@ public class GameScene : MonoBehaviour {
 
     private void calculateScoreBasedOnTime(float time){
       // default is one golden hotdog stand
-      string msg  = "Good job!";
+      string msg  = "Good job! Press ok to return to world map.";
       int score   = 1;
 
       if(time < 50){
-        msg   = "Good job!";
+        msg   = "Good job! Press ok to return to world map.";
         score = 3;
       }else if(time < 70){
-        msg   = "Good job!";
+        msg   = "Good job! Press ok to return to world map.";
         score = 2;
       }
 
@@ -537,31 +539,6 @@ public class GameScene : MonoBehaviour {
 
         lerpTimer = 0;
     }
-
-
-    /** Soomla store events
-      They are kept here so IAPManager does not have to interact with UI elements.
-
-      onMarketPurchase handles the aftermath of a purchase. For some reason the ToString method does not
-      directly match the string ids and therefore the contains method was used.
-      Otherwise the implementation would use a switch case
-    */
-    // public void onMarketPurchase(PurchasableVirtualItem pvi, string payload, Dictionary<string, string> extra) {
-    //   Debug.Log("GameScene, we are detecting a buy from within GameScene!");
-    //
-    //   JSONObject item = pvi.toJSONObject();
-    //   string itemIDString = item["itemId"].ToString();
-    //
-    //   if(itemIDString.Contains("hints_small_id")){
-    //     Global.instance.updatePlayerPrefWithInt("hintcount", 5);
-    //   }else if(itemIDString.Contains("hints_large_id")){
-    //     Global.instance.updatePlayerPrefWithInt("hintcount", 20);
-    //   }
-    //
-    //   main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
-    //   main.ui.showShop(false);
-    //   main.ui.showHUD(true);
-    // }
 
     public void updateHintNumber(){
       main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();

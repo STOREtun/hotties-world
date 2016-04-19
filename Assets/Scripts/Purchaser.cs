@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Purchasing;
+using UnityEngine.UI;
 
 public class Purchaser : MonoBehaviour, IStoreListener {
 
@@ -11,8 +12,8 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 	private static string smallHintPackID = "smallHintPack";
 	private static string bigHintPackID		= "bigHintPack";
 
-	private static string bigHintPack_consumeable 	= "com.huusmann.hottiesworld.largehintpack20hints"; // Apple App Store identifier for the consumable product.
-	private static string smallHintPack_consumeable = "com.huusmann.hottiesworld.smallhintpack5hints";
+	private static string bigHintPack_consumeable 	= "com.fanny_posselt.hotdogheroes.largehintpack20hints"; // Apple App Store identifier for the consumable product.
+	private static string smallHintPack_consumeable = "com.fanny_posselt.hotdogheroes.smallhintpack5hints";
 
 	private static string android_bigHintPack_consumeable 	= "com.fanny_posselt.hotdogheroes.largehintpack20hints";
 	private static string android_smallHintPack_consumeable = "com.fanny_posselt.hotdogheroes.smallhintpack5hints";
@@ -39,14 +40,15 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 		ConfigurationBuilder builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
 
 		// Add a product to sell / restore by way of its identifier, associating the general identifier with its store-specific identifiers.
-		builder.AddProduct(smallHintPackID, ProductType.Consumable, new IDs(){
-			{smallHintPack_consumeable, AppleAppStore.Name },
-		}); // Continue adding the non-consumable product.
+		// builder.AddProduct(smallHintPackID, ProductType.Consumable, new IDs(){
+		// 	{smallHintPack_consumeable, AppleAppStore.Name },
+		// }); // Continue adding the non-consumable product.
 
 		builder.AddProduct(bigHintPackID, ProductType.Consumable, new IDs(){
 			{bigHintPack_consumeable, AppleAppStore.Name},
 			{android_bigHintPack_consumeable,  GooglePlay.Name},
 		});
+
 		builder.AddProduct(smallHintPackID, ProductType.Consumable, new IDs(){
 			{smallHintPack_consumeable, AppleAppStore.Name},
 			{android_smallHintPack_consumeable,  GooglePlay.Name},
@@ -91,6 +93,34 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 			 Debug.Log ("BuyProductID: FAIL. Exception during purchase. " + e);
 		 }
 	 }
+
+	public void restorePurchases(){
+		if (!isInitialized()){
+			    // ... report the situation and stop restoring. Consider either waiting longer, or retrying initialization.
+			    Debug.Log("RestorePurchases FAIL. Not initialized.");
+			    return;
+			}
+
+			// If we are running on an Apple device ...
+			if (Application.platform == RuntimePlatform.IPhonePlayer ||
+			    Application.platform == RuntimePlatform.OSXPlayer){
+			    // ... begin restoring purchases
+			    Debug.Log("RestorePurchases started ...");
+
+			    // Fetch the Apple store-specific subsystem.
+			    var apple = m_StoreExtensionProvider.GetExtension<IAppleExtensions>();
+			    // Begin the asynchronous process of restoring purchases. Expect a confirmation response in the Action<bool> below, and ProcessPurchase if there are previously purchased products to restore.
+			    apple.RestoreTransactions((result) => {
+			        // The first phase of restoration. If no more responses are received on ProcessPurchase then no purchases are available to be restored.
+			        Debug.Log("RestorePurchases continuing: " + result + ". If no further messages, no purchases available to restore.");
+			    });
+			}
+			// Otherwise ...
+			else{
+			    // We are not running on an Apple device. No work is necessary to restore purchases.
+			    Debug.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
+			}
+	}
 
 	// IStoreListener
 	public void OnInitialized(IStoreController controller, IExtensionProvider extensions){

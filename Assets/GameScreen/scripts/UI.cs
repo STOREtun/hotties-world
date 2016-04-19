@@ -51,6 +51,10 @@ public class UI : MonoBehaviour {
 
     public PopupController popupController;
 
+    // timer
+    public Text timeText;
+    public GameObject timeObject;
+
     // popup overlay bottom
     public GameObject bottomPopupOverlay;
     public Image bottomPopupImg;

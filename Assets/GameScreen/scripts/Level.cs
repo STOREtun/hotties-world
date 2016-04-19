@@ -35,6 +35,7 @@ public class Level : MonoBehaviour {
     public SmokeAnimationController smokeController;
     public float timeSpend;
     public bool countUp;
+    public Sprite buildSprite;
 
     public Sprite[] fannyReactions;
 
@@ -77,23 +78,30 @@ public class Level : MonoBehaviour {
 
     void Update(){
       if(startedCountDown){
+        if(!main.ui.timeObject.activeInHierarchy) main.ui.timeObject.SetActive(true);
         timeLeft -= Time.deltaTime;
-        if(timeLeft <= 0) foundHungryAgent();
+        if(timeLeft < 0){
+          timeLeft = 0;
+          foundHungryAgent();
+        }
+        main.ui.timeText.text = timeLeft.ToString();
       }
 
       if(countUp){
+        if(!main.ui.timeObject.activeInHierarchy) main.ui.timeObject.SetActive(true);
         timeSpend += Time.deltaTime;
+        main.ui.timeText.text = timeSpend.ToString();
       }
     }
 
     void OnGUI(){
-      if(startedCountDown){
-        GUI.Box(new Rect(10, 10, 70, 70), "");
-        GUI.Label(new Rect(10, 10, 100, 100), ((int) timeLeft).ToString(), guiStyle);
-      }else if(countUp){
-        GUI.Box(new Rect(10, 10, 80, 70), "");
-        GUI.Label(new Rect(10, 10, 100, 100), ((int) timeSpend).ToString(), guiStyle);
-      }
+      // if(startedCountDown){
+      //   GUI.Box(new Rect(10, 10, 70, 70), "");
+      //   GUI.Label(new Rect(10, 10, 100, 100), ((int) timeLeft).ToString(), guiStyle);
+      // }else if(countUp){
+      //   GUI.Box(new Rect(10, 10, 80, 70), "");
+      //   GUI.Label(new Rect(10, 10, 100, 100), ((int) timeSpend).ToString(), guiStyle);
+      // }
     }
 
 
@@ -238,13 +246,15 @@ public class Level : MonoBehaviour {
           if(customer != null) customer.GetComponent<HungryCustomer>().feed();
 
           main.ui.popupController.animateBottomPopup(
-            "Good job! Now it is time to build! How fast can you build a cinema? The timer will start when you click the building area.",
+            "Good job! Now it is time to build! How fast can you find the parts for the building? The timer will start when you click the building area.",
             popupConstructionImage
           );
           Global.instance.gameState = Global.GameState.CONSTRUCT_BUILDING;
           arrow.enabled = true;
           finger.begin(FingerController.Tempo.SLOW);
 
+          // set up the building image - the hammer
+          main.ui.currentObjectivePanel.GetComponent<Image>().sprite = buildSprite;
           startedCountDown = false;
         }else{ // if not last remove one from bottom (-1 because the HUD only contains 5)
           //main.ui.objectiveCheckmarkPanels[hotdogsLeft - 1].SetActive(true);
@@ -274,7 +284,6 @@ public class Level : MonoBehaviour {
       return null;
     }
 
-    // TODO : when the last hiddenBuildPart is found what do we put in the right corner?
     public void foundPart(GameObject foundPart){
       if(foundPart.GetComponent<HiddenBuildPart>().found) return; // already found?
       foundParts++;
@@ -284,22 +293,14 @@ public class Level : MonoBehaviour {
       // go through all the silhouettes and replace the one with matching name
       foreach(GameObject obj in silhouettes){
         if(obj.name == foundPart.name){
-          // replace with full sprite instead of deactivate
-          // obj.SetActive(false);
+          // replace with full sprite
           obj.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
         }
       }
 
       foundPart.GetComponent<HiddenBuildPart>().flyToDestination();
-      foreach(GameObject part in hiddenBuildingParts){
-        if(!part.GetComponent<HiddenBuildPart>().found){
-          main.ui.currentObjectivePanel.GetComponent<Image>().sprite = part.GetComponent<SpriteRenderer>().sprite;
-          main.ui.currentObjectivePanel.GetComponent<Image>().color = new Color(0, 0, 0, 1);
-        }
-      }
 
       // make it possible to start the construction
-      // TODO : how to show that? (tapping finger?)
       if(foundParts >= requiredParts){
         isReadyToBuild = true;
         finger.begin(FingerController.Tempo.FAST);
@@ -307,8 +308,8 @@ public class Level : MonoBehaviour {
     }
 
     public void initHiddenBuildParts(){
-      main.ui.currentObjectivePanel.GetComponent<Image>().sprite = hiddenBuildingParts[foundParts].GetComponent<SpriteRenderer>().sprite;
-      main.ui.currentObjectivePanel.GetComponent<Image>().color = new Color(0, 0, 0, 1);
+      // main.ui.currentObjectivePanel.GetComponent<Image>().sprite = hiddenBuildingParts[foundParts].GetComponent<SpriteRenderer>().sprite;
+      // main.ui.currentObjectivePanel.GetComponent<Image>().color = new Color(0, 0, 0, 1);
       foreach(GameObject obj in hiddenBuildingParts){
         obj.SetActive(true);
       }
