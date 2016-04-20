@@ -21,6 +21,9 @@ public class ArrowHandler : MonoBehaviour {
 
 		journeyLength = Vector3.Distance(transform.position, pointTo.position);
 		startTime = Time.time;
+
+		// for some reason this fixes the rotation problem
+		transform.rotation = new Quaternion(0, 0, 0, 0);
 	}
 
 	// TODO : the arrow needs to be rotated 180 degrees

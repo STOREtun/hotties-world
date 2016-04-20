@@ -81,7 +81,10 @@ public class PopupController : MonoBehaviour {
 			it must be clicked away
 	*/
 	public void animateBottomPopup(string text, Sprite img){
-		if(img != null) bottomPopupImg.sprite = img;
+		if(img != null){
+			bottomPopupImg.gameObject.SetActive(true);
+			bottomPopupImg.sprite = img;
+		}else bottomPopupImg.gameObject.SetActive(false);
 		bottomPopupText.text = text;
 		bottomPopupButton_close.SetActive(true);
 		bottomPopupButton_next.SetActive(false);
@@ -90,7 +93,12 @@ public class PopupController : MonoBehaviour {
 	}
 
 	public void animateBottomPopupWithSecondText(string text, string _secondText, Sprite img){
-		if(img != null) bottomPopupImg.sprite = img;
+		// if there is no image deactivate the gameobject holding the image
+		if(img != null){
+			bottomPopupImg.gameObject.SetActive(true);
+			bottomPopupImg.sprite = img;
+		}else bottomPopupImg.gameObject.SetActive(false);
+
 		bottomPopupText.text = text;
 		secondText = _secondText;
 		bottomPopupButton_close.SetActive(false);

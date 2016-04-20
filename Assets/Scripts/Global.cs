@@ -123,8 +123,8 @@ public class Global  {
     }
 
     public void updateHintcountWith(int count){
-      updatePlayerPrefWithInt("hintCount", hintCount + count);
-      reloadNumberOfHints();
+      PlayerPrefs.SetInt("hintCount", hintCount + count);
+      hintCount = PlayerPrefs.GetInt("hintCount", hintCount);
     }
 
     public void reloadNumberOfHints(){

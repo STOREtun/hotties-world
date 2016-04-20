@@ -51,6 +51,8 @@ public class UI : MonoBehaviour {
 
     public PopupController popupController;
 
+    public Sprite celebrationSprite;
+
     // timer
     public Text timeText;
     public GameObject timeObject;
@@ -83,13 +85,14 @@ public class UI : MonoBehaviour {
 
     // next button is pressed, which means that we update the image and present new text
     public void nextButtonPressed(){
+      popupController.bottomPopupImg.gameObject.SetActive(true);
       popupController.bottomPopupImg.sprite = main.level.objectiveSprites[Global.instance.currentHiddenIndex];
       popupController.presentSecondText();
     }
 
     public void showCalculatedScore(string msg, int score){
       Sprite reaction = main.level.fannyReactions[score - 1];
-      bottomPopupImg.sprite = reaction;
+      //bottomPopupImg.sprite = reaction;
       bottomPopupText.text = msg;
       // bottomPopupOverlay.GetComponent<Canvas>().enabled = true;
 

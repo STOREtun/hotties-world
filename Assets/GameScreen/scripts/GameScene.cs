@@ -61,7 +61,7 @@ public class GameScene : MonoBehaviour {
 
       main.ui.showPopupObjectiveWithText(
         main.level.levelText,
-        main.level.fannyReactions[0],
+        null, //main.level.fannyReactions[0],
         main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex]
       );
 
@@ -191,15 +191,10 @@ public class GameScene : MonoBehaviour {
                     main.ui.nextButtonPressed();
                 }else if (pressedObject == "SmallHintPack") {
                   main.purchaser.buyConsumable("smallHintPack");
-                  Invoke("updateHintNumber", 3);
-                  //print("GameScene, TODO: buy small hint pack");
-                    // main.ui.showMenu(false);
-                    // main.ui.showShop(true);
-                    // return;
+                  //Invoke("updateHintNumber", 5);
                 }else if(pressedObject == "BigHintPack"){
                   main.purchaser.buyConsumable("bigHintPack");
-                  Invoke("updateHintNumber", 3);
-                  //print("GameScene, TODO: buy big hint pack");
+                  // Invoke("updateHintNumber", 5);
                 }else if(pressedObject == "RestorePurchase"){
                   main.purchaser.restorePurchases();
                 }else if (pressedObject == "BuyButton") {
@@ -217,7 +212,6 @@ public class GameScene : MonoBehaviour {
                       if (Global.instance.hintCount > 0) {
                           // depending on the gamestate the hints should function differently
                           GameObject hiddenGameObj = null;
-                          print("GameScene, pressed hintpanel: " + Global.instance.gameState);
                           switch(Global.instance.gameState){
                             case Global.GameState.FIND_HIDDEN_OBJECTS:
                               hiddenGameObj = main.level.hiddenObjects[Global.instance.currentHiddenIndex];
@@ -366,9 +360,10 @@ public class GameScene : MonoBehaviour {
 
                       main.level.prepareFeedingState();
 
+                      // dont present fanny reaction. The image is not scaled correctly as it is
                       main.ui.popupController.animateBottomPopup(
                         main.level.objectiveDescriptionFinishedText,
-                        main.level.fannyReactions[0]
+                        null
                       );
                     }else{ // there are still objectives to be found - present the next
                       // check the checkmark on the map
@@ -540,7 +535,7 @@ public class GameScene : MonoBehaviour {
         lerpTimer = 0;
     }
 
-    public void updateHintNumber(){
-      main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
-    }
+    // public void updateHintNumber(){
+    //   main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
+    // }
 }

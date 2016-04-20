@@ -74,6 +74,9 @@ public class Level : MonoBehaviour {
       // make sure there is no animation on start of level
       finger.stop();
       smokeController.stop();
+      arrow.enabled = false;
+
+      // arrow.enabled = true;
     }
 
     void Update(){

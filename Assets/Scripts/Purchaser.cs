@@ -12,13 +12,13 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 	private static string smallHintPackID = "smallHintPack";
 	private static string bigHintPackID		= "bigHintPack";
 
-	private static string bigHintPack_consumeable 	= "com.fanny_posselt.hotdogheroes.largehintpack20hints"; // Apple App Store identifier for the consumable product.
-	private static string smallHintPack_consumeable = "com.fanny_posselt.hotdogheroes.smallhintpack5hints";
+	private static string bigHintPack_consumeable 	= "com.fanny_posselt.hotdogheroes.largehintpack"; // Apple App Store identifier for the consumable product.
+	private static string smallHintPack_consumeable = "com.fanny_posselt.hotdogheroes.smallhintpack";
 
 	private static string android_bigHintPack_consumeable 	= "com.fanny_posselt.hotdogheroes.largehintpack20hints";
 	private static string android_smallHintPack_consumeable = "com.fanny_posselt.hotdogheroes.smallhintpack5hints";
 
-	// TODO : need two hint packages for google play store
+	public Text hintNumber;
 
 	// Use this for initialization
 	void Start () {
@@ -35,6 +35,8 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 		  // ... we are done here.
 		  return;
 		}
+
+		print("Purchaser, initialization");
 
 		// Create a builder, first passing in a suite of Unity provided stores.
 		ConfigurationBuilder builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
@@ -142,6 +144,8 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 		}else{
 			print("Purchaser, nothing was bought");
 		}
+
+		hintNumber.text = Global.instance.hintCount.ToString();
 
 		return PurchaseProcessingResult.Complete;
 	}
