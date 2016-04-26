@@ -84,8 +84,6 @@ public class GameScene : MonoBehaviour {
         GetComponent<TapGesture>().Tapped -= tappedHandler;
     }
 
-
-
     //*********************************************************************
     //***********************  input handlers  ****************************
     //*********************************************************************
@@ -148,9 +146,9 @@ public class GameScene : MonoBehaviour {
 
         EventSystem.current.RaycastAll(tmpPointer, tmpRaycastResults);
         if(tmpRaycastResults.Count <= 0){ //If no ui object was hit - close all menu elements and show the gamescene
-          main.ui.showMenu(false);
-          main.ui.showShop(false);
-          main.ui.showHUD(true);
+          // main.ui.showMenu(false);
+          // main.ui.showShop(false);
+          // main.ui.showHUD(true);
           // return;
         }
 
@@ -191,10 +189,8 @@ public class GameScene : MonoBehaviour {
                     main.ui.nextButtonPressed();
                 }else if (pressedObject == "SmallHintPack") {
                   main.purchaser.buyConsumable("smallHintPack");
-                  //Invoke("updateHintNumber", 5);
                 }else if(pressedObject == "BigHintPack"){
                   main.purchaser.buyConsumable("bigHintPack");
-                  // Invoke("updateHintNumber", 5);
                 }else if(pressedObject == "RestorePurchase"){
                   main.purchaser.restorePurchases();
                 }else if (pressedObject == "BuyButton") {
@@ -208,33 +204,33 @@ public class GameScene : MonoBehaviour {
                 }else if(res.gameObject.name == "QuitButton"){
                   Application.LoadLevel("WorldMap");
                 }else if (pressedObject == "HintPanel") {
-                  //if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.hiddenObjects.Length) {
-                      if (Global.instance.hintCount > 0) {
-                          // depending on the gamestate the hints should function differently
-                          GameObject hiddenGameObj = null;
-                          switch(Global.instance.gameState){
-                            case Global.GameState.FIND_HIDDEN_OBJECTS:
-                              hiddenGameObj = main.level.hiddenObjects[Global.instance.currentHiddenIndex];
-                            break;
+                    //if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.hiddenObjects.Length) {
+                    if (Global.instance.hintCount > 0) {
+                        // depending on the gamestate the hints should function differently
+                        GameObject hiddenGameObj = null;
+                        switch(Global.instance.gameState){
+                          case Global.GameState.FIND_HIDDEN_OBJECTS:
+                            hiddenGameObj = main.level.hiddenObjects[Global.instance.currentHiddenIndex];
+                          break;
 
-                            case Global.GameState.FEED_AGENTS:
-                              hiddenGameObj = main.level.currentHungryCustomer;
-                            break;
+                          case Global.GameState.FEED_AGENTS:
+                            hiddenGameObj = main.level.currentHungryCustomer;
+                          break;
 
-                            case Global.GameState.CONSTRUCT_BUILDING:
-                              // if we are ready to build the hint is deactivated
-                              if(main.level.isReadyToBuild) hiddenGameObj = null;
+                          case Global.GameState.CONSTRUCT_BUILDING:
+                            // if we are ready to build the hint is deactivated
+                            if(main.level.isReadyToBuild) hiddenGameObj = null;
 
-                              hiddenGameObj = main.level.getNextHiddenBuildPart();
-                            break;
-                          }
+                            hiddenGameObj = main.level.getNextHiddenBuildPart();
+                          break;
+                        }
 
-                          if(hiddenGameObj != null){
-                            setLerpPos(hiddenGameObj.transform.position);
-                            Global.instance.hintCount--;
-                            Global.instance.updatePlayerPrefWithInt("hintCount", -1);
-                            main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
-                          }
+                        if(hiddenGameObj != null){
+                          setLerpPos(hiddenGameObj.transform.position);
+                          Global.instance.hintCount--;
+                          Global.instance.updatePlayerPrefWithInt("hintCount", -1);
+                          main.ui.hintNumber.GetComponent<Text>().text = Global.instance.hintCount.ToString();
+                        }
 
                       } else {
                           // TODO : open shop to get more hints
@@ -245,14 +241,15 @@ public class GameScene : MonoBehaviour {
 
                 //notebook ui hits
                 if (res.gameObject == main.ui.notebookObjectiveTabPanel) {
-                    main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
+                  main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
                 } else if (res.gameObject == main.ui.notebookHelpTabPanel) {
-                    main.ui.showNotebook(UI.NotebookMode.HELP_TAB, true);
+                  // activate ParentelController
+                  main.ui.presentParentalGate();
                 } else if (res.gameObject == main.ui.notebookWorldmapTabPanel) {
-                    main.ui.showNotebook(UI.NotebookMode.WORLDMAP_TAB, true);
-                    main.ui.WorldMapText.GetComponent<Text>().text = main.level.levelText;
+                  main.ui.showNotebook(UI.NotebookMode.WORLDMAP_TAB, true);
+                  main.ui.WorldMapText.GetComponent<Text>().text = main.level.levelText;
                 } else if (res.gameObject == main.ui.notebookOptionsTabPanel) {
-                    main.ui.showNotebook(UI.NotebookMode.OPTIONS_TAB, true);
+                  main.ui.showNotebook(UI.NotebookMode.OPTIONS_TAB, true);
                 }else if(res.gameObject == main.ui.closeMenuButton){
                   main.ui.showNotebook(UI.NotebookMode.CLOSED, false);
                 }

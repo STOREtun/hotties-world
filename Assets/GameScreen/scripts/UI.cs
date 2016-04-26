@@ -71,6 +71,8 @@ public class UI : MonoBehaviour {
 
     public Sprite done;
 
+    public ParentalController parentalController;
+
     private Main main = null;
 
     public void finish(){
@@ -137,9 +139,8 @@ public class UI : MonoBehaviour {
     public void toggleNotebook(NotebookMode mode) {
         showNotebook(mode, !notebookOverlayCanvas.activeSelf);
     }
-    public void showNotebook(NotebookMode mode, bool show) {
-      //topPopupOverlay.GetComponent<Canvas>().enabled = false;
 
+    public void showNotebook(NotebookMode mode, bool show) {
       notebookMode = show ? mode : NotebookMode.CLOSED;
       notebookOverlayCanvas.SetActive(show);
       if (show) {
@@ -147,13 +148,13 @@ public class UI : MonoBehaviour {
           notebookObjectiveTabPanel.GetComponent<Image>().sprite  = (mode == NotebookMode.OBJECTIVE_TAB ? notebookObjectiveSpriteFocus  : notebookObjectiveSpriteNonFocus);
           notebookHelpTabPanel.GetComponent<Image>().sprite       = (mode == NotebookMode.HELP_TAB      ? notebookHelpSpriteFocus       : notebookHelpSpriteNonFocus);
           notebookWorldmapTabPanel.GetComponent<Image>().sprite   = (mode == NotebookMode.WORLDMAP_TAB  ? notebookWorldmapSpriteFocus   : notebookWorldmapSpriteNonFocus);
-          notebookOptionsTabPanel.GetComponent<Image>().sprite    = (mode == NotebookMode.OPTIONS_TAB   ? notebookOptionsSpriteFocus    : notebookOptionsSpriteNonFocus);
+          //notebookOptionsTabPanel.GetComponent<Image>().sprite    = (mode == NotebookMode.OPTIONS_TAB   ? notebookOptionsSpriteFocus    : notebookOptionsSpriteNonFocus);
 
           //hide/show current tab contents
           notebookObjectiveHolderPanel.SetActive(mode == NotebookMode.OBJECTIVE_TAB);
           notebookHelpHolderPanel.SetActive(mode      == NotebookMode.HELP_TAB);
           notebookWorldmapHolderPanel.SetActive(mode  == NotebookMode.WORLDMAP_TAB);
-          notebookOptionsHolderPanel.SetActive(mode   == NotebookMode.OPTIONS_TAB);
+          //notebookOptionsHolderPanel.SetActive(mode   == NotebookMode.OPTIONS_TAB);
 
           notebookRibbonHolderPanel.SetActive(mode      == NotebookMode.OBJECTIVE_TAB); //only show when objective tab
           notebookCaptionText.GetComponent<Text>().text = main.level.objectiveCaptionText;
@@ -185,9 +186,13 @@ public class UI : MonoBehaviour {
       }else{
         if(!iapCanvas.activeSelf){
           notebookHUDCanvas.SetActive(true);
-        }
       }
     }
+  }
+
+  public void presentParentalGate(){
+    parentalController.presentParentalGate();
+  }
 
 	// Use this for initialization
 	void Awake () {
