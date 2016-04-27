@@ -244,7 +244,8 @@ public class GameScene : MonoBehaviour {
                   main.ui.showNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
                 } else if (res.gameObject == main.ui.notebookHelpTabPanel) {
                   // activate ParentelController
-                  main.ui.presentParentalGate();
+                  //main.ui.presentParentalGate();
+                  main.ui.showNotebook(UI.NotebookMode.HELP_TAB, true);
                 } else if (res.gameObject == main.ui.notebookWorldmapTabPanel) {
                   main.ui.showNotebook(UI.NotebookMode.WORLDMAP_TAB, true);
                   main.ui.WorldMapText.GetComponent<Text>().text = main.level.levelText;
