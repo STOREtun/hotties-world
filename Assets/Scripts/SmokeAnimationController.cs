@@ -9,14 +9,9 @@ public class SmokeAnimationController : MonoBehaviour {
 	public GameObject smokePart_02;
 	public GameObject smokePart_03;
 
-	private bool animate 	= false;
-	private int count 		= 0;
-	private int interval 	= 10;
-
-	// Use this for initialization
-	void Start () {
-
-	}
+	private bool animate = false;
+	private int count = 0;
+	private int interval= 10;
 
 	// Update is called once per frame
 	void Update () {
@@ -37,86 +32,59 @@ public class SmokeAnimationController : MonoBehaviour {
 		}
 	}
 
-	public void begin(){
+	public void Begin(){
 		if(animate) return;
 
-		fadeInSmoke();
+		FadeInSmoke();
 		animate = true;
 
 		// stop it because it needs constant clicking in order to animate
-		Invoke("stop", 1);
+		Invoke("Stop", 1.0f);
 	}
 
-	public void stop(){
-		fadeOutSmoke();
+	public void Stop(){
+		FadeOutSmoke();
 	}
 
-	public void showBackgroundSmoke(){
+	public void ShowBackgroundSmoke(){
 		smokeBackground.SetActive(true);
-		StartCoroutine(fadeInObject(smokeBackground));
+		StartCoroutine(FadeInObject(smokeBackground));
 	}
 
-	public void fadeInSmoke(){
-		StartCoroutine(fadeInObject(smokePart_00));
-		StartCoroutine(fadeInObject(smokePart_01));
-		StartCoroutine(fadeInObject(smokePart_02));
-		StartCoroutine(fadeInObject(smokePart_03));
+	public void FadeInSmoke(){
+		StartCoroutine(FadeInObject(smokePart_00));
+		StartCoroutine(FadeInObject(smokePart_01));
+		StartCoroutine(FadeInObject(smokePart_02));
+		StartCoroutine(FadeInObject(smokePart_03));
 	}
 
-	public void fadeOutSmoke(){
-		StartCoroutine(fadeOutObject(smokePart_00));
-		StartCoroutine(fadeOutObject(smokePart_01));
-		StartCoroutine(fadeOutObject(smokePart_02));
-		StartCoroutine(fadeOutObject(smokePart_03));
+	public void FadeOutSmoke(){
+		StartCoroutine(FadeOutObject(smokePart_00));
+		StartCoroutine(FadeOutObject(smokePart_01));
+		StartCoroutine(FadeOutObject(smokePart_02));
+		StartCoroutine(FadeOutObject(smokePart_03));
 	}
 
 	// fade
-	public IEnumerator fadeInObject(GameObject objectToFade){
+	public IEnumerator FadeInObject(GameObject objectToFade){
 		SpriteRenderer sp = objectToFade.GetComponent<SpriteRenderer>();
+		sp.color = new Color (1, 1, 1, 0);
 
-		sp.color = new Color(1f, 1f, 1f, 0.1f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.2f);
-		yield return new WaitForSeconds(.01f);
-		sp.color = new Color(1f, 1f, 1f, 0.3f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.4f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.5f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.6f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.7f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.8f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.9f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 1f);
+		Color c = new Color (0, 0, 0, .1f);
+		for(int x = 0; x <= 10; x++){
+			sp.color += c;
+			yield return new WaitForSeconds(.05f);
+		}
 	}
 
-	public IEnumerator fadeOutObject(GameObject objectToFade){
+	public IEnumerator FadeOutObject(GameObject objectToFade){
 		SpriteRenderer sp = objectToFade.GetComponent<SpriteRenderer>();
 
-		sp.color = new Color(1f, 1f, 1f, 0.9f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.8f);
-		yield return new WaitForSeconds(.01f);
-		sp.color = new Color(1f, 1f, 1f, 0.7f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.6f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.5f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.4f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.3f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.2f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0.1f);
-		yield return new WaitForSeconds(.05f);
-		sp.color = new Color(1f, 1f, 1f, 0);
+		Color c = new Color (0, 0, 0, .1f);
+		for(int x = 0; x <= 10; x++){
+			sp.color -= c;
+			yield return new WaitForSeconds (.05f);
+		}
 
 		animate = false;
 	}

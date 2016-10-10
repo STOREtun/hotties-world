@@ -71,135 +71,140 @@ public class UI : MonoBehaviour {
 
     public Sprite done;
 
-    public ParentalController parentalController;
-
     private Main main = null;
 
-    public void finish(){
+    public void Finish(){
       Color color = new Color(1, 1, 1, 1);
       currentObjectivePanel.GetComponent<Image>().color = color;
       currentObjectivePanel.GetComponent<Image>().sprite = done;
     }
 
-    public void showPopupObjectiveWithText(string text, Sprite img, string _secondText = null){
-      popupController.animateBottomPopupWithSecondText(text, _secondText, img);
+    public void ShowPopupObjectiveWithText(string text, Sprite img, string _secondText = null){
+		string[] texts = new string[]{ text, _secondText };
+		popupController.ShowBottomPopup(texts, img);
+    }
+		
+    public void ShowCalculatedScore(string msg, int score){
+		Sprite reaction = main.level.fannyReactions[score - 1];
+		bottomPopupText.text = msg;
+
+		for(int i = 0; i < 3; i++){
+			Image img = scoreObjs[i].GetComponent<Image>();
+			img.enabled = true;
+
+			if((i + 1) <= score)
+				img.color = new Color(1f, 1f, 1f, 1f);
+		}
+
+//		popupController.AnimateBottomPopupWithFanny(msg, reaction);
+		string[] texts = new string[]{msg};
+		popupController.ShowBottomPopup(texts, reaction);
     }
 
-    // next button is pressed, which means that we update the image and present new text
-    public void nextButtonPressed(){
-      popupController.bottomPopupImg.gameObject.SetActive(true);
-      popupController.bottomPopupImg.sprite = main.level.objectiveSprites[Global.instance.currentHiddenIndex];
-      popupController.presentSecondText();
+    public void HideBottomPopup(){
+      popupController.HideBottomPopup();
     }
 
-    public void showCalculatedScore(string msg, int score){
-      Sprite reaction = main.level.fannyReactions[score - 1];
-      //bottomPopupImg.sprite = reaction;
-      bottomPopupText.text = msg;
-      // bottomPopupOverlay.GetComponent<Canvas>().enabled = true;
-
-      for(int i = 0; i < 3; i++){
-        Image img = scoreObjs[i].GetComponent<Image>();
-        img.enabled = true;
-        if((i + 1) <= score) img.color = new Color(1f, 1f, 1f, 1f);
-      }
-
-      popupController.animateBottomPopup(msg, reaction);
+    public void ToggleMenu() {
+      ToggleNotebook(NotebookMode.OPTIONS_TAB);
     }
 
-    public void hideBottomPopup(){
-      popupController.hideBottomPopup();
-    }
-
-    public void toggleMenu() {
-      //showMenu(!menuPanel.activeSelf);
-      toggleNotebook(NotebookMode.OPTIONS_TAB);
-    }
-
-    public void changeObjectiveTextTo(string newText){
+    public void ChangeObjectiveTextTo(string newText){
       notebookObjectiveDescriptionText.GetComponent<Text>().text = newText;
     }
 
-    //Could show latest menu instead of always showing the options
-    public void showMenu(bool show) {
-      showNotebook(NotebookMode.OPTIONS_TAB, show);
+    public void ShowMenu(bool show) {
+		ShowNotebook(NotebookMode.OPTIONS_TAB, show);
     }
 
-    public void showShop(bool show) {
-      iapCanvas.SetActive(show);
+	#region Show Specific Menu
+    public void ShowShop() {
+		ShowNotebook(NotebookMode.HELP_TAB, true);
     }
 
-    public void showHUD(bool show){
-      notebookHUDCanvas.SetActive(show);
+	public void ShowWorldMap(){
+		ShowNotebook (NotebookMode.WORLDMAP_TAB, true);
+	}
+
+	public void ShowObjectiveTab(){
+		ShowNotebook (NotebookMode.OBJECTIVE_TAB, true);
+	}
+	#endregion
+
+    public void ShowHUD(bool show){
+		notebookHUDCanvas.SetActive(show);
     }
 
-    public enum NotebookMode { CLOSED, OBJECTIVE_TAB, HELP_TAB, WORLDMAP_TAB, OPTIONS_TAB };
+    public enum NotebookMode {
+		CLOSED,
+		OBJECTIVE_TAB, 
+		HELP_TAB, 
+		WORLDMAP_TAB, 
+		OPTIONS_TAB
+	};
     public NotebookMode notebookMode = NotebookMode.CLOSED;
 
-    public void toggleNotebook(NotebookMode mode) {
-        showNotebook(mode, !notebookOverlayCanvas.activeSelf);
+    public void ToggleNotebook(NotebookMode mode) {
+        ShowNotebook(mode, !notebookOverlayCanvas.activeSelf);
     }
 
-    public void showNotebook(NotebookMode mode, bool show) {
+    public void ShowNotebook(NotebookMode mode, bool show) {
       notebookMode = show ? mode : NotebookMode.CLOSED;
       notebookOverlayCanvas.SetActive(show);
       if (show) {
-          //hilite/dim tabs(bookmarks)
-          notebookObjectiveTabPanel.GetComponent<Image>().sprite  = (mode == NotebookMode.OBJECTIVE_TAB ? notebookObjectiveSpriteFocus  : notebookObjectiveSpriteNonFocus);
-          notebookHelpTabPanel.GetComponent<Image>().sprite       = (mode == NotebookMode.HELP_TAB      ? notebookHelpSpriteFocus       : notebookHelpSpriteNonFocus);
-          notebookWorldmapTabPanel.GetComponent<Image>().sprite   = (mode == NotebookMode.WORLDMAP_TAB  ? notebookWorldmapSpriteFocus   : notebookWorldmapSpriteNonFocus);
-          //notebookOptionsTabPanel.GetComponent<Image>().sprite    = (mode == NotebookMode.OPTIONS_TAB   ? notebookOptionsSpriteFocus    : notebookOptionsSpriteNonFocus);
+			//hilite/dim tabs(bookmarks)
+			notebookObjectiveTabPanel.GetComponent<Image>().sprite  = (mode == NotebookMode.OBJECTIVE_TAB ? notebookObjectiveSpriteFocus  : notebookObjectiveSpriteNonFocus);
+			notebookHelpTabPanel.GetComponent<Image>().sprite       = (mode == NotebookMode.HELP_TAB      ? notebookHelpSpriteFocus       : notebookHelpSpriteNonFocus);
+			notebookWorldmapTabPanel.GetComponent<Image>().sprite   = (mode == NotebookMode.WORLDMAP_TAB  ? notebookWorldmapSpriteFocus   : notebookWorldmapSpriteNonFocus);
 
-          //hide/show current tab contents
-          notebookObjectiveHolderPanel.SetActive(mode == NotebookMode.OBJECTIVE_TAB);
-          notebookHelpHolderPanel.SetActive(mode      == NotebookMode.HELP_TAB);
-          notebookWorldmapHolderPanel.SetActive(mode  == NotebookMode.WORLDMAP_TAB);
-          //notebookOptionsHolderPanel.SetActive(mode   == NotebookMode.OPTIONS_TAB);
+			//hide/show current tab contents
+			notebookObjectiveHolderPanel.SetActive(mode == NotebookMode.OBJECTIVE_TAB);
+			notebookHelpHolderPanel.SetActive(mode      == NotebookMode.HELP_TAB);
+			notebookWorldmapHolderPanel.SetActive(mode  == NotebookMode.WORLDMAP_TAB);
+			//notebookOptionsHolderPanel.SetActive(mode   == NotebookMode.OPTIONS_TAB);
 
-          notebookRibbonHolderPanel.SetActive(mode      == NotebookMode.OBJECTIVE_TAB); //only show when objective tab
-          notebookCaptionText.GetComponent<Text>().text = main.level.objectiveCaptionText;
+			notebookRibbonHolderPanel.SetActive(mode      == NotebookMode.OBJECTIVE_TAB); //only show when objective tab
+			notebookCaptionText.GetComponent<Text>().text = main.level.objectiveCaptionText;
 
-          notebookButtonPanel.SetActive(false);
-          notebookHUDCanvas.SetActive(false);
+			notebookButtonPanel.SetActive(false);
+			notebookHUDCanvas.SetActive(false);
 
-          if (mode == NotebookMode.OBJECTIVE_TAB) {
-              //print("UI, " + Global.instance.currentHiddenIndex + " >= 0 " + Global.instance.currentHiddenIndex + " < " + main.level.objectiveDescriptionTexts.Length);
-              if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.objectiveDescriptionTexts.Length) {
-                  //rule: when index in range, it means player is still searching for hidden objects
-                  string str = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex].Replace("\\n", "\n"); //yet another Unity workaround (inspector escapes the backslash, so we need to unescape it)
-                  notebookObjectiveDescriptionText.GetComponent<Text>().text = str;
-              } else {
-                  //rule: when index is > array, it means player has found last hidden object
-                  string str = main.level.objectiveDescriptionFinishedText.Replace("\\n", "\n"); //yet another Unity workaround (inspector escapes the backslash, so we need to unescape it)
-                  notebookObjectiveDescriptionText.GetComponent<Text>().text = str;
-              }
-              //set big ribbon objectives
-              int index = Global.instance.getCurrentHiddenIndex();
-              for (int i = 0; i <= index && i < main.level.objectiveSprites.Length; i++) {
-                  notebookObjectivePanels[i].GetComponent<Image>().sprite = main.level.objectiveSprites[i];
-              }
-              for (int i = 0; i < notebookObjectiveCheckmarkPanels.Length; i++) {
-                  notebookObjectiveCheckmarkPanels[i].SetActive(i <= index - 1);
-              }
-           }
+			if (mode == NotebookMode.OBJECTIVE_TAB) {
+				//print("UI, " + Global.instance.currentHiddenIndex + " >= 0 " + Global.instance.currentHiddenIndex + " < " + main.level.objectiveDescriptionTexts.Length);
+				if (Global.instance.currentHiddenIndex >= 0 && Global.instance.currentHiddenIndex < main.level.objectiveDescriptionTexts.Length) {
+				//rule: when index in range, it means player is still searching for hidden objects
+					string str = main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex].Replace("\\n", "\n"); //yet another Unity workaround (inspector escapes the backslash, so we need to unescape it)
+					notebookObjectiveDescriptionText.GetComponent<Text>().text = str;
+				} else {
+				//rule: when index is > array, it means player has found last hidden object
+					string str = main.level.objectiveDescriptionFinishedText.Replace("\\n", "\n"); //yet another Unity workaround (inspector escapes the backslash, so we need to unescape it)
+					notebookObjectiveDescriptionText.GetComponent<Text>().text = str;
+				}
+				//set big ribbon objectives
+					int index = Global.instance.GetCurrentHiddenIndex();
+					for (int i = 0; i <= index && i < main.level.objectiveSprites.Length; i++) {
+					notebookObjectivePanels[i].GetComponent<Image>().sprite = main.level.objectiveSprites[i];
+				}
+					for (int i = 0; i < notebookObjectiveCheckmarkPanels.Length; i++) {
+					notebookObjectiveCheckmarkPanels[i].SetActive(i <= index - 1);
+				}
+			}
 
-      }else{
-        if(!iapCanvas.activeSelf){
-          notebookHUDCanvas.SetActive(true);
-      }
-    }
-  }
+			}else{
+				notebookHUDCanvas.SetActive(true);
+		}
+	}
 
-  public void presentParentalGate(){
-    parentalController.presentParentalGate();
-  }
+	public void PresentParentalGate(){
+		ParentalController.PresentParentalGate();
+
+		#if UNITY_EDITOR
+		ShowShop();
+		#endif
+	}
 
 	// Use this for initialization
 	void Awake () {
     	main = FindObjectOfType<Main>();
-	}
-
-	// Update is called once per frame
-	void Update () {
-	}
+	}		
 }

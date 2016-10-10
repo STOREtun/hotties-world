@@ -53,7 +53,7 @@ public class FingerController : MonoBehaviour {
 		}
 	}
 
-	public void stop(){
+	public void Stop(){
 		gameObject.SetActive(false);
 		animate = false;
 	}

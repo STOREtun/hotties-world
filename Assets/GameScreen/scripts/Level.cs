@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.UI;
-
+using System.Collections;
+using System.Collections.Generic;
 
 public class Level : MonoBehaviour {
 
@@ -36,6 +36,7 @@ public class Level : MonoBehaviour {
     public float timeSpend;
     public bool countUp;
     public Sprite buildSprite;
+    public string buildText;
 
     public Sprite[] fannyReactions;
 
@@ -72,94 +73,80 @@ public class Level : MonoBehaviour {
       guiStyle.normal.textColor = Color.white;
 
       // make sure there is no animation on start of level
-      finger.stop();
-      smokeController.stop();
+      finger.Stop();
+      smokeController.Stop();
       arrow.enabled = false;
 
       // arrow.enabled = true;
     }
 
     void Update(){
-      if(startedCountDown){
-        if(!main.ui.timeObject.activeInHierarchy) main.ui.timeObject.SetActive(true);
-        timeLeft -= Time.deltaTime;
-        if(timeLeft < 0){
-          timeLeft = 0;
-          foundHungryAgent();
-        }
-        main.ui.timeText.text = timeLeft.ToString();
-      }
+		if(startedCountDown){
+			if(!main.ui.timeObject.activeInHierarchy)
+				main.ui.timeObject.SetActive(true);
 
-      if(countUp){
-        if(!main.ui.timeObject.activeInHierarchy) main.ui.timeObject.SetActive(true);
-        timeSpend += Time.deltaTime;
-        main.ui.timeText.text = timeSpend.ToString();
-      }
+			timeLeft -= Time.deltaTime;
+
+			if(timeLeft < 0){
+				timeLeft = 0;
+				FoundHungryAgent();
+			}
+			main.ui.timeText.text = timeLeft.ToString();
+		}
+
+		if(countUp){
+			if(!main.ui.timeObject.activeInHierarchy)
+				main.ui.timeObject.SetActive(true);
+
+			timeSpend += Time.deltaTime;
+			main.ui.timeText.text = timeSpend.ToString();
+		}
     }
 
-    void OnGUI(){
-      // if(startedCountDown){
-      //   GUI.Box(new Rect(10, 10, 70, 70), "");
-      //   GUI.Label(new Rect(10, 10, 100, 100), ((int) timeLeft).ToString(), guiStyle);
-      // }else if(countUp){
-      //   GUI.Box(new Rect(10, 10, 80, 70), "");
-      //   GUI.Label(new Rect(10, 10, 100, 100), ((int) timeSpend).ToString(), guiStyle);
-      // }
+	#region Hidden Objects
+	public void FoundHiddenObjective(GameObject foundObjective){
+		GameObject checkmark = foundObjective.GetComponent<HiddenObject>().checkmark;
+		checkmark.SetActive(true); // on map
+		main.ui.objectiveCheckmarkPanels[Global.instance.currentHiddenIndex - 1].SetActive(true); // on right side ribbon
+
+		Invoke ("PresentBottomPopup", 3.0f);
     }
 
+    private void PresentBottomPopup(){
+		List<string> texts = new List<string> ();
+		Sprite img = null;
 
-    // FIND_HIDDEN_OBJECTS
+		switch(Global.instance.gameState){
 
-    /** check checkmarks on both map and right side ribbon
-    */
-    public void foundHiddenObjective(GameObject foundObjective){
-      GameObject checkmark = foundObjective.GetComponent<HiddenObject>().checkmark;
-      checkmark.SetActive(true); // on map
-      main.ui.objectiveCheckmarkPanels[Global.instance.currentHiddenIndex - 1].SetActive(true); // on right side ribbon
+		case GameState.FIND_HIDDEN_OBJECTS:
+			texts.Add(objectiveDescriptionTexts [Global.instance.currentHiddenIndex]);
+			img = objectiveSprites [Global.instance.currentHiddenIndex];
+			break;
 
-      Invoke("presentBottomPopup", 3);
+		case GameState.FEED_AGENTS:
+			texts.Add(main.level.objectiveDescriptionFinishedText);
+			break;
+
+        case GameState.CONSTRUCT_BUILDING:
+          break;
+
+        case GameState.FINISHED:
+          break;
+		}
+
+		main.ui.popupController.ShowBottomPopup (
+			texts.ToArray(),
+			img
+		);
     }
 
-    void presentBottomPopup(){
-      switch(Global.instance.gameState){
-        case Global.GameState.FIND_HIDDEN_OBJECTS:
-          main.ui.popupController.animateBottomPopup(
-            objectiveDescriptionTexts[Global.instance.currentHiddenIndex],
-            objectiveSprites[Global.instance.currentHiddenIndex]
-          );
-          break;
-
-        case Global.GameState.FEED_AGENTS:
-          break;
-
-        case Global.GameState.CONSTRUCT_BUILDING:
-          break;
-
-        case Global.GameState.FINSISHED:
-          break;
-      }
-    }
-
-    public void setCurrentObjective() {
-        int currentObjectiveIndex = Global.instance.currentHiddenIndex;
+    public void SetCurrentObjective() {
+		int currentObjectiveIndex = Global.instance.currentHiddenIndex;
         // hidden objects on map
         for (int i = 0; i < hiddenObjects.Length; i++ ) {
-          bool chk = currentObjectiveIndex >= i + 1;
-          bool foundLastObj = currentObjectiveIndex >= hiddenObjects.Length;
-          //Debug.Log("index=" + i + " curObjIndex=" + currentObjectiveIndex + " check=" + chk);
-          // GameObject checkmark = hiddenObjects[i].GetComponent<HiddenObject>().checkmark;
-          // checkmark.SetActive(chk);
-
-          if(chk){
-            string foundText = objectiveFoundTexts[i];
-            string nextObjective;
-            if(foundLastObj){
-              nextObjective = objectiveDescriptionFinishedText;
-            }else{
-              nextObjective = objectiveDescriptionTexts[i + 1];
-            }
-          }
-        }
+			bool chk = currentObjectiveIndex >= i + 1;
+			bool foundLastObj = currentObjectiveIndex >= hiddenObjects.Length;
+		}
 
         // UI of hidden objects
         int sprIndex = Mathf.Clamp(currentObjectiveIndex, 0, objectiveSprites.Length-1);
@@ -176,245 +163,209 @@ public class Level : MonoBehaviour {
         for (int i = 0; i < main.ui.objectiveCheckmarkPanels.Length; i++) {
             main.ui.objectiveCheckmarkPanels[i].SetActive(i <= currentObjectiveIndex - 1);
         }
-
     }
 
-    public int getHiddenObjectIndex(GameObject hiddenObject) {
+    public int GetHiddenObjectIndex(GameObject hiddenObject) {
         for (int i = 0; i < hiddenObjects.Length; i++)
             if (hiddenObject == hiddenObjects[i])
                 return i;
         return -1;
     }
+	#endregion
 
+	#region FeedAgents
+    public void SpawnNextHungryCustomer(){
+		if(hungryCustomersFound == 0){
+			RemoveCheckmarksFromHiddenObjects ();
+			StartCountDown ();
+		}
 
-    // FEED_AGENTS
-
-    // remove the images of the hidden objects from previous gamestate
-    public void prepareFeedingState(){
-      // // small ribbons on the right on the HUD
-      Invoke("removeCheckmarksFromHiddenObjects", 3);
-
-      //main.ui.showPopupObjectiveWithText(objectiveDescriptionFinishedText);
-      spawnHotdogAgent();
+		SpawnHotdogAgent();
     }
 
-    public void startCountDown(){
+    private void StartCountDown(){
       startedCountDown = true;
       timeLeft = 60;
     }
 
-    void removeCheckmarksFromHiddenObjects(){
-      for (int i = 0; i < hiddenObjects.Length; i++ ){
-        GameObject checkmark = hiddenObjects[i].GetComponent<HiddenObject>().checkmark;
-        checkmark.SetActive(false);
-      }
+    private void RemoveCheckmarksFromHiddenObjects(){
+		for (int i = 0; i < hiddenObjects.Length; i++ ){
+			GameObject checkmark = hiddenObjects[i].GetComponent<HiddenObject>().checkmark;
+			checkmark.SetActive(false);
+		}
     }
 
-    public void spawnHotdogAgent(){
-      // Main main = GameObject.Find("Main").GetComponent<Main>();
-      if(hotdogAgents.Length > 0){ // should stop after 6 runs … if(hotdogAgentCount <= 6)
-        int index = Random.Range(0, hotdogAgents.Length - 1);
-        GameObject customer = hotdogAgents[index];
+    public void SpawnHotdogAgent(){
+		if(hotdogAgents.Length > 0){ // should stop after 6 runs … if(hotdogAgentCount <= 6)
+			int index = Random.Range(0, hotdogAgents.Length - 1);
+			GameObject customer = hotdogAgents[index];
 
-        if(currentHungryCustomer != null
-          && customer.GetComponent<SpriteRenderer>().sprite.name == currentHungryCustomerString){
-            spawnHotdogAgent(); // new customer is identical to old - try again
-            return;
-        }
+	        if(currentHungryCustomer != null
+	          && customer.GetComponent<SpriteRenderer>().sprite.name == currentHungryCustomerString){
+					SpawnHotdogAgent(); // new customer is identical to old - try again
+					return;
+	        }
 
-        main.ui.currentObjectivePanel.GetComponent<Image>().sprite = customer.GetComponent<SpriteRenderer>().sprite;
-        customer.SetActive(true);
+	        main.ui.currentObjectivePanel.GetComponent<Image>().sprite = customer.GetComponent<SpriteRenderer>().sprite;
+	        customer.SetActive(true);
 
-        System.Collections.Generic.List<GameObject> list = new System.Collections.Generic.List<GameObject>(hotdogAgents);
-        list.Remove(customer);
-        hotdogAgents = list.ToArray();
-        currentHungryCustomer = customer;
-        currentHungryCustomerString = customer.GetComponent<SpriteRenderer>().sprite.name;
+	        System.Collections.Generic.List<GameObject> list = new System.Collections.Generic.List<GameObject>(hotdogAgents);
+	        list.Remove(customer);
+	        hotdogAgents = list.ToArray();
+	        currentHungryCustomer = customer;
+	        currentHungryCustomerString = customer.GetComponent<SpriteRenderer>().sprite.name;
       }else{ // found them all
-        timeLeft = 0;
-        foundHungryAgent();
-      }
+			timeLeft = 0;
+			FoundHungryAgent();
+		}
     }
 
     /** remove a hotdog from the right side HUD because it was used to feed
         a hungry customer
         TODO : rotate the arrow correctly
     */
-    public void foundHungryAgent(GameObject customer = null){
-      // Main main = GameObject.Find("Main").GetComponent<Main>();
+    public void FoundHungryAgent(GameObject customer = null){
+		if(Global.instance.gameState == GameState.FEED_AGENTS){
+			if(timeLeft <= 0){ // time is up
+				if(customer != null) customer.GetComponent<HungryCustomer>().feed();
 
-      // check if are in correct state
-      if(Global.instance.gameState == Global.GameState.FEED_AGENTS){
-        if(timeLeft <= 0){ // time is up
-          if(customer != null) customer.GetComponent<HungryCustomer>().feed();
+				string[] texts = new string[] {
+					buildText
+				};
 
-          main.ui.popupController.animateBottomPopup(
-            "Good job! Now it is time to build! How fast can you find the parts for the building? The timer will start when you click the building area.",
-            popupConstructionImage
-          );
-          Global.instance.gameState = Global.GameState.CONSTRUCT_BUILDING;
-          arrow.enabled = true;
-          finger.begin(FingerController.Tempo.SLOW);
+				main.ui.popupController.ShowBottomPopup(
+					texts,
+					popupConstructionImage
+				);
+				Global.instance.gameState = GameState.CONSTRUCT_BUILDING;
+				arrow.enabled = true;
+				finger.begin(FingerController.Tempo.SLOW);
 
-          // set up the building image - the hammer
-          main.ui.currentObjectivePanel.GetComponent<Image>().sprite = buildSprite;
-          startedCountDown = false;
-        }else{ // if not last remove one from bottom (-1 because the HUD only contains 5)
-          //main.ui.objectiveCheckmarkPanels[hotdogsLeft - 1].SetActive(true);
-          hungryCustomersFound++;
+				main.ui.currentObjectivePanel.GetComponent<Image>().sprite = buildSprite;
+				startedCountDown = false;
+			}else{ // if not last remove one from bottom (-1 because the HUD only contains 5)
+				hungryCustomersFound++;
+				customer.GetComponent<HungryCustomer>().feed();
+				SpawnHotdogAgent();
+			}
+		}
+	}
+	#endregion
 
-          // change image
-          customer.GetComponent<HungryCustomer>().feed();
-          // spawn new
-          spawnHotdogAgent();
-        }
-      }
+	#region Construct Building
+    public void StartTimerForConstruction(){
+		countUp = true;
     }
 
-    // CONSTRUCT_BUILDING
-
-    public void startTimerForConstruction(){
-      countUp = true;
+    public GameObject GetNextHiddenBuildPart(){
+		foreach(GameObject obj in hiddenBuildingParts){
+			if(!obj.GetComponent<HiddenBuildPart>().found){
+				return obj;
+			}
+		}
+		return null;
     }
 
-    public GameObject getNextHiddenBuildPart(){
-      foreach(GameObject obj in hiddenBuildingParts){
-        if(!obj.GetComponent<HiddenBuildPart>().found){
-          return obj;
-        }
-      }
+    public void FoundPart(GameObject foundPart){
+		if(foundPart.GetComponent<HiddenBuildPart>().found) return; // already found?
+		foundParts++;
 
-      return null;
+		foundPart.GetComponent<HiddenBuildPart>().found = true;
+
+		// go through all the silhouettes and replace the one with matching name
+		foreach(GameObject obj in silhouettes){
+			if(obj.name == foundPart.name){
+				// replace with full sprite
+				obj.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
+			}
+		}
+
+		foundPart.GetComponent<HiddenBuildPart>().flyToDestination();
+
+		// make it possible to start the construction
+		if(foundParts >= requiredParts){
+			isReadyToBuild = true;
+			finger.begin(FingerController.Tempo.FAST);
+		}
     }
 
-    public void foundPart(GameObject foundPart){
-      if(foundPart.GetComponent<HiddenBuildPart>().found) return; // already found?
-      foundParts++;
-
-      foundPart.GetComponent<HiddenBuildPart>().found = true;
-
-      // go through all the silhouettes and replace the one with matching name
-      foreach(GameObject obj in silhouettes){
-        if(obj.name == foundPart.name){
-          // replace with full sprite
-          obj.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
-        }
-      }
-
-      foundPart.GetComponent<HiddenBuildPart>().flyToDestination();
-
-      // make it possible to start the construction
-      if(foundParts >= requiredParts){
-        isReadyToBuild = true;
-        finger.begin(FingerController.Tempo.FAST);
-      }
-    }
-
-    public void initHiddenBuildParts(){
-      // main.ui.currentObjectivePanel.GetComponent<Image>().sprite = hiddenBuildingParts[foundParts].GetComponent<SpriteRenderer>().sprite;
-      // main.ui.currentObjectivePanel.GetComponent<Image>().color = new Color(0, 0, 0, 1);
-      foreach(GameObject obj in hiddenBuildingParts){
-        obj.SetActive(true);
-      }
+	public void InitHiddenBuildParts(bool show = true){
+		foreach(GameObject obj in hiddenBuildingParts){
+			obj.SetActive(show);
+		}
     }
 
     // TODO : animate the smoke
-    public void animateSmoke(){
-      smokeController.begin();
+    public void AnimateSmoke(){
+		smokeController.Begin();
     }
 
     // TODO : make a common method to show the smoke.
     // maybe let the smoke be a part for itself, and then go through the stages
     // to build the final construction (like India right now)
-    public void prepareBuildingSmoke(){
-      if(Global.instance.currentLevelIndex == 0){ // greenland
-        // [1] = smoking stage
-        StartCoroutine(fadeInObject(buildingStages[1]));
-        buildingStages[0].gameObject.SetActive(false);
+    public void PrepareBuildingSmoke(){
+		if(Global.instance.currentLevelIndex == 0){ // greenland
+			// [1] = smoking stage
+			StartCoroutine(FadeInObject(buildingStages[1]));
+			buildingStages[0].gameObject.SetActive(false);
       }else{ // India
-        smokeController.showBackgroundSmoke();
-        buildingStages[1].gameObject.SetActive(false);
+			smokeController.ShowBackgroundSmoke();
+			buildingStages[1].gameObject.SetActive(false);
       }
 
 
       // animation part of smoke
-      smokeController.begin();
+      smokeController.Begin();
 
       // deactivate the build parts as they are used
       foreach(GameObject obj in hiddenBuildingParts){
-        obj.SetActive(false);
-      }
+			obj.SetActive(false);
+		}
     }
 
     // initate the final animation between the building stages
     // TODO : same as prepareBuildingSmoke
-    public IEnumerator finishBuilding(){
-      if(Global.instance.currentLevelIndex == 0){ // greenland
-        StartCoroutine(fadeInObject(buildingStages[2]));
-        StartCoroutine(fadeOutObject(buildingStages[1]));
+    public IEnumerator FinishBuilding(){
+		buildingStages [0].gameObject.SetActive (false);
 
-        yield return new WaitForSeconds(0.5f);
+		if(Global.instance.currentLevelIndex == 0){ // greenland
+			StartCoroutine(FadeInObject(buildingStages[2]));
+        	StartCoroutine(FadeOutObject(buildingStages[1]));
 
-        StartCoroutine(fadeInObject(buildingStages[3]));
-        StartCoroutine(fadeOutObject(buildingStages[2]));
+        	yield return new WaitForSeconds(0.5f);
 
-        yield return new WaitForSeconds(0.5f);
+        	StartCoroutine(FadeInObject(buildingStages[3]));
+        	StartCoroutine(FadeOutObject(buildingStages[2]));
 
-        StartCoroutine(fadeInObject(buildingStages[4]));
-        StartCoroutine(fadeOutObject(buildingStages[3]));
+        	yield return new WaitForSeconds(0.5f);
 
-      }else{ // India
-        buildingStages[0].gameObject.SetActive(false);
-        StartCoroutine(fadeOutObject(buildingStages[2]));
-        StartCoroutine(fadeInObject(buildingStages[3]));
-      }
+        	StartCoroutine(FadeInObject(buildingStages[4]));
+       		StartCoroutine(FadeOutObject(buildingStages[3]));
+		}else{ // India
+			buildingStages[0].gameObject.SetActive(false);
+			StartCoroutine(FadeOutObject(buildingStages[2]));
+			StartCoroutine(FadeInObject(buildingStages[3]));
+		}
+	}
+
+    public IEnumerator FadeInObject(GameObject objectToFade){
+		SpriteRenderer sp = objectToFade.GetComponent<SpriteRenderer>();
+
+		Color c = new Color (0, 0, 0, .1f);
+		for(int x = 0; x <= 10; x++){
+			sp.color += c;
+			yield return new WaitForSeconds(.05f);
+		}
     }
 
-    public IEnumerator fadeInObject(GameObject objectToFade){
-      SpriteRenderer sp = objectToFade.GetComponent<SpriteRenderer>();
+    public IEnumerator FadeOutObject(GameObject objectToFade){
+		SpriteRenderer sp = objectToFade.GetComponent<SpriteRenderer>();
 
-      sp.color = new Color(1f, 1f, 1f, 0.1f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.2f);
-      yield return new WaitForSeconds(.01f);
-      sp.color = new Color(1f, 1f, 1f, 0.3f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.4f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.5f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.6f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.7f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.8f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.9f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 1f);
+		Color c = new Color (0, 0, 0, .1f);
+		for(int x = 0; x <= 10; x++){
+			sp.color -= c;
+			yield return new WaitForSeconds (0.05f);
+		}
     }
-
-    public IEnumerator fadeOutObject(GameObject objectToFade){
-      SpriteRenderer sp = objectToFade.GetComponent<SpriteRenderer>();
-
-      sp.color = new Color(1f, 1f, 1f, 0.9f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.8f);
-      yield return new WaitForSeconds(.01f);
-      sp.color = new Color(1f, 1f, 1f, 0.7f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.6f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.5f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.4f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.3f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.2f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0.1f);
-      yield return new WaitForSeconds(.05f);
-      sp.color = new Color(1f, 1f, 1f, 0);
-    }
+	#endregion
 }

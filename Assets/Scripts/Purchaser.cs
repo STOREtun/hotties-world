@@ -64,7 +64,7 @@ public class Purchaser : MonoBehaviour, IStoreListener {
     return m_StoreController != null && m_StoreExtensionProvider != null;
 	}
 
-	public void buyConsumable(string consumable){
+	public void BuyConsumable(string consumable){
     // Buy the consumable product using its general identifier. Expect a response either through ProcessPurchase or OnPurchaseFailed asynchronously.
     buyProductID(consumable);
 	}
@@ -96,7 +96,7 @@ public class Purchaser : MonoBehaviour, IStoreListener {
 		 }
 	 }
 
-	public void restorePurchases(){
+	public void RestorePurchases(){
 		if (!isInitialized()){
 			    // ... report the situation and stop restoring. Consider either waiting longer, or retrying initialization.
 			    Debug.Log("RestorePurchases FAIL. Not initialized.");

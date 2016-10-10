@@ -10,7 +10,7 @@ public class IAPManager{
   }
 
 
-  public void buyItem(string item, string payload){
+  public void BuyItem(string item, string payload){
     // … buy
   }
 }

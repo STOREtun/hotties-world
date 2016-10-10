@@ -1,8 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum GameState{
+	FIND_HIDDEN_OBJECTS,
+	FEED_AGENTS,
+	CONSTRUCT_BUILDING,
+	FINISHED
+}
 
-//man maa sno sig sagde slangen
 public class Global  {
 
     public int currentLevelIndex;
@@ -14,16 +19,9 @@ public class Global  {
 
     public IAPManager iapManager = null;
 
-    private const int MAX_LEVELS = 1; // should get this number from main.levels.count
+    public const int MAX_LEVELS = 1; // should get this number from main.levels.count
 
-    // the three minigames
-    public enum GameState{
-      FIND_HIDDEN_OBJECTS,
-      FEED_AGENTS,
-      CONSTRUCT_BUILDING,
-      FINSISHED
-    }
-	  public GameState gameState;
+	public GameState gameState;
 
     protected Global() {} //guarantee singleton
     private static Global _instance = null;
@@ -37,20 +35,18 @@ public class Global  {
         }
     }
 
-    // TODO : dont delete all PlayerPrefs
+    public int getMaxLevels(){
+      return MAX_LEVELS;
+    }
+		
     private void init() {
-        // reset the game
-        // PlayerPrefs.DeleteAll();
-        // PlayerPrefs.SetInt("completedLevels", 0);
-        // PlayerPrefs.SetInt("currentlevelindex", 0);
-
-        gamelaunchcount = PlayerPrefs.GetInt("gamelaunchcount", -1);
+		gamelaunchcount = PlayerPrefs.GetInt("gamelaunchcount", -1);
         gamelaunchcount++;
         //gamelaunchcount = 0; //testing...
 
         //default values
         currentHiddenIndex  = 0;
-        gameState           = GameState.FIND_HIDDEN_OBJECTS; // GameState.CONSTRUCT_BUILDING;
+		gameState           = GameState.FIND_HIDDEN_OBJECTS; // GameState.CONSTRUCT_BUILDING;
 
         currentLevelIndex   = PlayerPrefs.GetInt("currentlevelindex", 0);
         completedLevels     = PlayerPrefs.GetInt("completedLevels", 0);
@@ -60,9 +56,6 @@ public class Global  {
         //PlayerPrefs.SetInt("currentHiddenIndex", currentHiddenIndex);
         PlayerPrefs.SetInt("hintCount", hintCount);
         PlayerPrefs.SetInt("completedLevels", completedLevels);
-
-        // iapManager = new IAPManager();
-        // iapManager.init();
     }
 
     private GameState convertStringToGameState(string _state){
@@ -76,7 +69,7 @@ public class Global  {
       }else if(_state.Contains("CONSTRUCT_BUILDING")){
         convertState = GameState.CONSTRUCT_BUILDING;
       }else if(_state.Contains("FINSISHED")){
-        convertState = GameState.FINSISHED;
+        convertState = GameState.FINISHED;
       }
 
       return convertState;
@@ -85,9 +78,6 @@ public class Global  {
 
     public static Transform findGameObjectWithTag(GameObject parent, string strTag) {
         foreach (Transform o in parent.transform) {
-//        foreach (GameObject o in parent.GetComponents<GameObject>()) {
-//            if (o.tag == strTag)
-//                return o.transform;
             if (o.gameObject.tag == strTag)
                 return o;
 
@@ -95,21 +85,25 @@ public class Global  {
         return null;
     }
 
-    public void reset(){
+    public void Reset(){
       currentHiddenIndex = 0;
       gameState = GameState.FIND_HIDDEN_OBJECTS;
     }
 
 
-    public void updateCurrentHiddenIndex(){
-      currentHiddenIndex++;
+    public void UpdateCurrentHiddenIndex(){
+		currentHiddenIndex++;
     }
 
-    public void changeGameState(GameState newState){
-      gameState = newState;
+	/// <summary>
+	/// Changes the game state and configures the game to thew new state.
+	/// </summary>
+	/// <param name="newState">New state.</param>
+    public void ChangeGameState(GameState newState){
+		gameState = newState;
     }
 
-    public int getCurrentHiddenIndex(){
+    public int GetCurrentHiddenIndex(){
       return currentHiddenIndex;
     }
 
@@ -138,7 +132,7 @@ public class Global  {
       return PlayerPrefs.GetInt("levelScore_"+currentLevelIndex, 0);
     }
 
-    public void saveScoreAndCompleteLevel(int score){
+    public void SaveScoreAndCompleteLevel(int score){
       int currentScore = PlayerPrefs.GetInt("levelScore_"+currentLevelIndex, 0);
       if(score > currentScore){ // better score, therefore we update it
           PlayerPrefs.SetInt("levelScore_"+currentLevelIndex, score);
@@ -150,38 +144,4 @@ public class Global  {
         PlayerPrefs.SetInt("completedLevels", completedLevels);
       }
     }
-
-    /** Old levelData - the need to save progress is no longer needed
-
-    public JSONObject levelData;
-    levelData = new JSONObject();
-
-    public void updateLevelDataInPlayerPrefs(){
-      PlayerPrefs.SetString("levelData_"+currentLevelIndex, levelData.ToString());
-    }
-
-    // update the current level json object to match levelID
-    public void updateLevelData(){
-       string _data = PlayerPrefs.GetString("levelData_"+currentLevelIndex, "empty");
-
-       // _data is empty if it is the first time loading this level
-       if(_data == "empty"){
-         JSONObject newLevel = new JSONObject();
-
-         newLevel.AddField("levelID", currentLevelIndex);
-         newLevel.AddField("currentHiddenIndex", 0);
-         newLevel.AddField("gameState", GameState.FIND_HIDDEN_OBJECTS.ToString());
-
-         levelData = newLevel;
-         PlayerPrefs.SetString("levelData_"+currentLevelIndex, levelData.ToString());
-       }else{
-         // load the data instead of creating it
-         levelData = new JSONObject(_data);
-
-         // update local level variables
-         gameState          = convertStringToGameState(levelData.GetField("gameState").ToString());
-         currentHiddenIndex = int.Parse(levelData.GetField("currentHiddenIndex").ToString());
-       }
-    }
-    */
 }
