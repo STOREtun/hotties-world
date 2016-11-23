@@ -12,7 +12,7 @@ public class HiddenBuildPart : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		move 	= false;
+		move = false;
 		found = false;
 	}
 
@@ -28,7 +28,7 @@ public class HiddenBuildPart : MonoBehaviour {
 		}
 	}
 
-	public void flyToDestination(){
+	public void FlyToDestination(){
 		move = true;
 	}
 }

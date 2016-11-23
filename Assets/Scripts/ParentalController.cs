@@ -30,8 +30,8 @@ public static class ParentalController {
 			_wrongAnswer
 		};
 
-		string firstAnswer;
-		string secondAnswer;
+		string firstAnswer, secondAnswer;
+
 		int random = UnityEngine.Random.Range (0, 2);
 		if (random == 0) {
 			secondAnswer = answers [1];
@@ -44,7 +44,6 @@ public static class ParentalController {
 			() => { // first answer was pressed
 				if(int.Parse(firstAnswer) == correctAnswer){
 					Main.instance.ui.ShowShop();
-//					Main.instance.ui.ShowNotebook(UI.NotebookMode.HELP_TAB, true);
 				}else Main.instance.ui.ShowNotebook(UI.NotebookMode.OBJECTIVE_TAB, true);
 			},
 			() => { // second answer was pressed

@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 
 public class WorldScreen : MonoBehaviour {
 
+	[SerializeField] private GameObject loadingAnimation;
 	[SerializeField] private SpriteRenderer worldMapRenderer;
 
     private enum State {
@@ -33,58 +34,52 @@ public class WorldScreen : MonoBehaviour {
 	private readonly float LERP_ZOOM_TIME = 2f; //transition time for camera zoom effect
 
     private void OnEnable() {
-      //register input handlers (aka listener aka callback)
-      GetComponent<PanGesture>().Panned += pannedHandler;
-      //GetComponent<FlickGesture>().Flicked += flickedHandler;
-      GetComponent<TapGesture>().Tapped += tappedHandler;
+      	GetComponent<PanGesture>().Panned += PannedHandler;
+      	GetComponent<TapGesture>().Tapped += TappedHandler;
     }
 
     private void OnDisable() {
-      //remove input handlers (aka listener aka callback)
-      GetComponent<PanGesture>().Panned -= pannedHandler;
-      //GetComponent<FlickGesture>().Flicked -= pannedHandler;
-      GetComponent<TapGesture>().Tapped -= tappedHandler;
+		GetComponent<PanGesture>().Panned -= PannedHandler;
+		GetComponent<TapGesture>().Tapped -= TappedHandler;
     }
 
     void Awake() {
-      cam = Camera.main;
-      originalOthographicSize = cam.orthographicSize;
-    }
+      	cam = Camera.main;
+      	originalOthographicSize = cam.orthographicSize;
 
-    void Start() {
 		loading = false;
 
 		//inititalize location points (show/hide accordingly)
 		Global global = Global.instance;
-		global.Reset(); // reset currentIndex and gamestate
+		global.Reset (); // reset currentIndex and gamestate
 
-		Locations locations = GetComponent<Locations>();
+		Locations locations = GetComponent<Locations> ();
 		if (global.completedLevels < 0) global.completedLevels = 0;
-			//print("WorldScreen, currentIndex: " + global.currentLevelIndex);
-			for (int i = locations.locations.Length - 1; i >= 0; i--) {
-			Location location = locations.locations[i].GetComponent<Location>();
+		//print("WorldScreen, currentIndex: " + global.currentLevelIndex);
+		for (int i = locations.locations.Length - 1; i >= 0; i--) {
+			Location location = locations.locations [i].GetComponent<Location> ();
 			Location.LocationState locationState = Location.LocationState.LOCKED;
 
 			if (i > global.completedLevels)
 				locationState = Location.LocationState.LOCKED;
 
-			if (i < global.completedLevels){
+			if (i < global.completedLevels) {
 				locationState = Location.LocationState.OPEN;
 
 				// setting score for already completed level
-				int score = Global.instance.getScoreForLevel(i);
-				if(score > 0){
-					for(int x = 0; x < 3; x++){
-						if(x < score){
-						SpriteRenderer sp = location.golden[x].GetComponent<SpriteRenderer>();
-						sp.color = new Color(1, 1, 1, 1);
+				int score = Global.instance.GetScoreForLevel (i);
+				if (score > 0) {
+					for (int x = 0; x < 3; x++) {
+						if (x < score) {
+							SpriteRenderer sp = location.golden [x].GetComponent<SpriteRenderer> ();
+							sp.color = new Color (1, 1, 1, 1);
 						}
 					}
 				}
 			}
 
 			if (i == global.completedLevels) {
-				locationState   = Location.LocationState.CURRENT;
+				locationState = Location.LocationState.CURRENT;
 				currentLocation = location;
 			}
 
@@ -92,10 +87,11 @@ public class WorldScreen : MonoBehaviour {
 
 			state = State.WAITING;
 		}
-	}
+    }
 
 	public void MoveCameraToCurrentLocation (){
 		state = State.READY;
+
 		if (currentLocation) {
 			GameObject currentObj = GameObject.FindWithTag("LOCATION_CURRENT");
 			Vector3 currentObjectivePos = currentObj.transform.position;
@@ -105,7 +101,7 @@ public class WorldScreen : MonoBehaviour {
 		}
 	}
 
-    private void pannedHandler(object sender, EventArgs e) {
+    private void PannedHandler(object sender, EventArgs e) {
 		if(loading) return; 
 
 		PanGesture gesture = (PanGesture)sender;
@@ -116,7 +112,7 @@ public class WorldScreen : MonoBehaviour {
 		SetLerpPos(newWorldPos, 0.1f);
     }
 
-    private void tappedHandler(object sender, EventArgs e) {
+    private void TappedHandler(object sender, EventArgs e) {
 		if(loading) return; // dont let user manipulate screen if loading
 
 		TapGesture gesture = (TapGesture)sender;
@@ -137,7 +133,7 @@ public class WorldScreen : MonoBehaviour {
 					string childName = child.gameObject.name;
 					bool isLocked = child.gameObject.activeSelf;
 					if(childName == "location_locked" && !isLocked){
-			  			StartCoroutine(LoadLevel(index));
+						StartCoroutine (LoadLevel (index));
 			  			break;
 					}
 				}
@@ -145,18 +141,17 @@ public class WorldScreen : MonoBehaviour {
 		}
 	}
 
-    private IEnumerator LoadLevel(int level){
+	private IEnumerator LoadLevel(int level){
 		loading = true;
+		loadingAnimation.SetActive (true);
 
-		Color c = new Color (0.1f, 0.1f, 0.1f, 0);
-		for(int x = 0; x < 10; x++){
-			worldMapRenderer.color -= c;
-			yield return new WaitForSeconds (0.05f);
-		}
+		yield return new WaitForSeconds (2.0f);
 
 		Global.instance.currentLevelIndex = level;
-		SceneManager.LoadScene ("Game");
-//		Application.LoadLevel("Game");
+		AsyncOperation asyncLoading = SceneManager.LoadSceneAsync ("Game");
+		while (!asyncLoading.isDone) { 
+			yield return null;
+		}
     }
 
 

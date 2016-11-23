@@ -26,8 +26,6 @@ public class ArrowHandler : MonoBehaviour {
 		transform.rotation = new Quaternion(0, 0, 0, 0);
 	}
 
-	// TODO : the arrow needs to be rotated 180 degrees
-	// TODO : stop the arrow when within distance (x) of target area
 	// Update is called once per frame
 	void Update () {
 		float distance = Vector3.Distance(pointTo.position, transform.position);
@@ -71,7 +69,7 @@ public class ArrowHandler : MonoBehaviour {
 		}
 	}
 
-	public void deactivateArrow(){
-		gameObject.SetActive(false);
-	}
+	//public void DeactivateArrow(){
+	//	gameObject.SetActive(false);
+	//}
 }

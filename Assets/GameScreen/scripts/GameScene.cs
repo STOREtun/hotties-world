@@ -48,8 +48,8 @@ public class GameScene : MonoBehaviour {
 		main.level.SetCurrentObjective();
 
 		//init ui stuff
-		main.ui.currentObjectivePanel.GetComponent<Image>().sprite = 
-			main.level.objectiveSprites[Global.instance.currentHiddenIndex];
+		//main.ui.currentObjectivePanel.GetComponent<Image>().sprite = 
+			//main.level.objectiveSprites[Global.instance.currentHiddenIndex];
 
 		// init hint number
 		main.ui.hintNumber.GetComponent<Text>().text = 
@@ -63,6 +63,7 @@ public class GameScene : MonoBehaviour {
 			null, // main.level.fannyReactions[0],
 			main.level.objectiveDescriptionTexts[Global.instance.currentHiddenIndex]
 		);
+
 	}
 
 
@@ -150,12 +151,16 @@ public class GameScene : MonoBehaviour {
 
 	private void HandleConstructionClick(GameObject col){
 		if(col.gameObject.tag == GameConstants.TAG_BUILD_AREA){
-			main.level.popup.SetActive(!main.level.popup.activeSelf);
+
+			//main.level.popup.SetActive(!main.level.popup.activeSelf);
+			main.ui.ShowConstructionPopup ();
+
 			if(shouldInitBuildParts){
 				shouldInitBuildParts = false;
 
+				main.soundHandler.PlaySound (Sound.PRESENT_POPUP);
+
 				main.level.InitHiddenBuildParts();
-				main.level.StartTimerForConstruction();
 
 				// hide the arrow and finger
 				main.level.arrow.enabled = false;
@@ -163,9 +168,11 @@ public class GameScene : MonoBehaviour {
 			}
 		}else if(col.gameObject.tag == GameConstants.TAG_BUILD_PART && !main.level.isReadyToBuild){
 			main.level.FoundPart (col.gameObject);
+			main.soundHandler.PlaySound (Sound.CLICK_FOUND_OBJECT);
 		}else if(col.gameObject.tag == GameConstants.TAG_SMOKE && main.level.isReadyToBuild){
 			main.level.AnimateSmoke();
-			main.level.popup.SetActive(false);
+			//main.level.popup.SetActive(false);
+			main.ui.HideConstructionPopup ();
 			main.level.InitHiddenBuildParts (false);
 			// set the items to false
 
@@ -174,6 +181,8 @@ public class GameScene : MonoBehaviour {
 
 			// enough taps has been done do complete construction
 			if (tapsOnSmoke >= REQUIRED_TAPS) {
+				main.soundHandler.PlaySound (Sound.CONSTRUCTION_DONE);
+
 				main.level.finger.Stop ();
 				main.level.countUp = false;
 
@@ -184,7 +193,7 @@ public class GameScene : MonoBehaviour {
 				main.ui.Finish ();
 
 				Invoke ("InitCalculationOfScore", 3);
-			}
+			}else main.soundHandler.PlaySound (Sound.CONSTRUCTION_CLICK);
 		}
 	}
 
@@ -202,6 +211,8 @@ public class GameScene : MonoBehaviour {
 		}
 
 		if (globalIndex == hiddenObjectIndex) { // check if we pressed the correct hidden object
+			main.soundHandler.PlaySound (Sound.CLICK_FOUND_OBJECT);
+
 			Global.instance.UpdateCurrentHiddenIndex ();
 
 			// check the checkmark on the map

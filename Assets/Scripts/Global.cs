@@ -19,8 +19,6 @@ public class Global  {
 
     public IAPManager iapManager = null;
 
-    public const int MAX_LEVELS = 1; // should get this number from main.levels.count
-
 	public GameState gameState;
 
     protected Global() {} //guarantee singleton
@@ -35,10 +33,6 @@ public class Global  {
         }
     }
 
-    public int getMaxLevels(){
-      return MAX_LEVELS;
-    }
-		
     private void init() {
 		gamelaunchcount = PlayerPrefs.GetInt("gamelaunchcount", -1);
         gamelaunchcount++;
@@ -128,14 +122,14 @@ public class Global  {
     /** returns score if the level progress is stored in PlayerPrefs.
         otherwise return 0
     */
-    public int getScoreForLevel(int level){
-      return PlayerPrefs.GetInt("levelScore_"+currentLevelIndex, 0);
+    public int GetScoreForLevel(int level){
+      return PlayerPrefs.GetInt("levelScore_" + level, 0);
     }
 
     public void SaveScoreAndCompleteLevel(int score){
-      int currentScore = PlayerPrefs.GetInt("levelScore_"+currentLevelIndex, 0);
+      int currentScore = PlayerPrefs.GetInt("levelScore_" + currentLevelIndex, 0);
       if(score > currentScore){ // better score, therefore we update it
-          PlayerPrefs.SetInt("levelScore_"+currentLevelIndex, score);
+          PlayerPrefs.SetInt("levelScore_" + currentLevelIndex, score);
       }
 
       // only increment if is first time playing the level

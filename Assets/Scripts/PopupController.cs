@@ -36,6 +36,8 @@ public class PopupController : MonoBehaviour {
 	/// <param name="text">Text.</param>
 	/// <param name="img">Image.</param>
 	public void ShowBottomPopup(string[] texts, Sprite img){
+		Main.instance.soundHandler.PlaySound (Sound.PRESENT_POPUP);
+
 		bottomPopup.SetActive (true);
 		fannyReaction.gameObject.SetActive(false);
 
@@ -77,6 +79,7 @@ public class PopupController : MonoBehaviour {
 			Main.instance.level.SpawnNextHungryCustomer ();
 			break;
 		case GameState.CONSTRUCT_BUILDING:
+			Main.instance.level.arrow.enabled = true;
 			break;
 		case GameState.FINISHED:
 			SceneManager.LoadScene ("WorldMap");

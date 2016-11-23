@@ -18,7 +18,7 @@ public class Level : MonoBehaviour {
     public string   levelText;
 
     // FEED_AGENTS
-    public GameObject[] hotdogAgents;
+    public GameObject[] hungryCustomers;
     public GameObject currentHungryCustomer;
     [HideInInspector] private string currentHungryCustomerString;
     public int hungryCustomersFound;
@@ -29,7 +29,7 @@ public class Level : MonoBehaviour {
     public GameObject[] hiddenBuildingParts;
     public GameObject[] silhouettes;
     public GameObject[] buildingStages;
-    public GameObject popup;
+    //public GameObject popup;
     public FingerController finger;
     public Sprite popupConstructionImage;
     public SmokeAnimationController smokeController;
@@ -49,7 +49,6 @@ public class Level : MonoBehaviour {
     private int requiredParts;
 
     private Main main;
-
     private GUIStyle guiStyle;
 
     void Awake(){
@@ -57,27 +56,25 @@ public class Level : MonoBehaviour {
     }
 
     void Start(){
-      // FEED_AGENTS
-      startedCountDown  = false;
-      hungryCustomersFound = 0;
+		// FEED_AGENTS
+		startedCountDown  = false;
+		hungryCustomersFound = 0;
 
-      // CONSTRUCT_BUILDING
-      countUp           = false;
-      timeSpend         = 0;
-      requiredParts     = hiddenBuildingParts.Length;
-      foundParts        = 0;
-      isReadyToBuild    = false;
+		// CONSTRUCT_BUILDING
+		countUp           = false;
+		timeSpend         = 0;
+		requiredParts     = hiddenBuildingParts.Length;
+		foundParts        = 0;
+		isReadyToBuild    = false;
 
-      guiStyle = new GUIStyle();
-      guiStyle.fontSize = 60;
-      guiStyle.normal.textColor = Color.white;
+		guiStyle = new GUIStyle();
+		guiStyle.fontSize = 60;
+		guiStyle.normal.textColor = Color.white;
 
-      // make sure there is no animation on start of level
-      finger.Stop();
-      smokeController.Stop();
-      arrow.enabled = false;
-
-      // arrow.enabled = true;
+		// make sure there is no animation on start of level
+		finger.Stop();
+		smokeController.Stop();
+		arrow.enabled = false;
     }
 
     void Update(){
@@ -94,13 +91,13 @@ public class Level : MonoBehaviour {
 			main.ui.timeText.text = timeLeft.ToString();
 		}
 
-		if(countUp){
-			if(!main.ui.timeObject.activeInHierarchy)
-				main.ui.timeObject.SetActive(true);
+		//if(countUp){
+		//	if(!main.ui.timeObject.activeInHierarchy)
+		//		main.ui.timeObject.SetActive(true);
 
-			timeSpend += Time.deltaTime;
-			main.ui.timeText.text = timeSpend.ToString();
-		}
+		//	timeSpend += Time.deltaTime;
+		//	main.ui.timeText.text = timeSpend.ToString();
+		//}
     }
 
 	#region Hidden Objects
@@ -152,7 +149,7 @@ public class Level : MonoBehaviour {
         int sprIndex = Mathf.Clamp(currentObjectiveIndex, 0, objectiveSprites.Length-1);
 
         //right corner thumbnail of current objective
-        main.ui.currentObjectivePanel.GetComponent<Image>().sprite = objectiveSprites[sprIndex];
+        //main.ui.currentObjectivePanel.GetComponent<Image>().sprite = objectiveSprites[sprIndex];
 
         // right corner thumbnail image of objective in bookmark list
         for (int i = 0; i <= currentObjectiveIndex && i < objectiveSprites.Length; i++) {
@@ -180,7 +177,7 @@ public class Level : MonoBehaviour {
 			StartCountDown ();
 		}
 
-		SpawnHotdogAgent();
+		SpawnHungryCustomer();
     }
 
     private void StartCountDown(){
@@ -195,41 +192,62 @@ public class Level : MonoBehaviour {
 		}
     }
 
-    public void SpawnHotdogAgent(){
-		if(hotdogAgents.Length > 0){ // should stop after 6 runs … if(hotdogAgentCount <= 6)
-			int index = Random.Range(0, hotdogAgents.Length - 1);
-			GameObject customer = hotdogAgents[index];
+	IEnumerator activeCustomer;
+	IEnumerator VibrateHungryCustomer (GameObject customer){
+		int count = 0;
+		Vector3 offset = new Vector3 (0, 0.05f, 0);
+
+		while (true || timeLeft < 0) {
+			if (count >= 10) {
+				count = 0;
+				offset = -offset;
+			} else {
+				customer.transform.position += offset;
+			}
+
+			count++;
+
+			yield return null;
+		}
+	}
+
+	public void SpawnHungryCustomer(){
+		if(hungryCustomers.Length > 0){
+			int index = Random.Range(0, hungryCustomers.Length - 1);
+			GameObject customer = hungryCustomers[index];
 
 	        if(currentHungryCustomer != null
 	          && customer.GetComponent<SpriteRenderer>().sprite.name == currentHungryCustomerString){
-					SpawnHotdogAgent(); // new customer is identical to old - try again
+					SpawnHungryCustomer(); // new customer is identical to old - try again
 					return;
 	        }
 
-	        main.ui.currentObjectivePanel.GetComponent<Image>().sprite = customer.GetComponent<SpriteRenderer>().sprite;
+	        //main.ui.currentObjectivePanel.GetComponent<Image>().sprite = customer.GetComponent<SpriteRenderer>().sprite;
 	        customer.SetActive(true);
 
-	        System.Collections.Generic.List<GameObject> list = new System.Collections.Generic.List<GameObject>(hotdogAgents);
+	        List<GameObject> list = new List<GameObject>(hungryCustomers);
 	        list.Remove(customer);
-	        hotdogAgents = list.ToArray();
+	        hungryCustomers = list.ToArray();
 	        currentHungryCustomer = customer;
 	        currentHungryCustomerString = customer.GetComponent<SpriteRenderer>().sprite.name;
-      }else{ // found them all
+
+			activeCustomer = VibrateHungryCustomer (currentHungryCustomer);
+			StartCoroutine (activeCustomer);
+      }else{ // found them all - done
 			timeLeft = 0;
 			FoundHungryAgent();
 		}
     }
 
-    /** remove a hotdog from the right side HUD because it was used to feed
-        a hungry customer
-        TODO : rotate the arrow correctly
-    */
     public void FoundHungryAgent(GameObject customer = null){
 		if(Global.instance.gameState == GameState.FEED_AGENTS){
-			if(timeLeft <= 0){ // time is up
+
+			StopCoroutine(activeCustomer);
+
+			if(timeLeft <= 0){ // time is up - done
 				if(customer != null) customer.GetComponent<HungryCustomer>().feed();
 
-				string[] texts = new string[] {
+				string[] texts = {
 					buildText
 				};
 
@@ -237,26 +255,23 @@ public class Level : MonoBehaviour {
 					texts,
 					popupConstructionImage
 				);
+
 				Global.instance.gameState = GameState.CONSTRUCT_BUILDING;
-				arrow.enabled = true;
 				finger.begin(FingerController.Tempo.SLOW);
 
-				main.ui.currentObjectivePanel.GetComponent<Image>().sprite = buildSprite;
+				//main.ui.currentObjectivePanel.GetComponent<Image>().sprite = buildSprite;
 				startedCountDown = false;
-			}else{ // if not last remove one from bottom (-1 because the HUD only contains 5)
+				main.ui.timeObject.SetActive (false);
+			}else{ 
 				hungryCustomersFound++;
 				customer.GetComponent<HungryCustomer>().feed();
-				SpawnHotdogAgent();
+				SpawnHungryCustomer();
 			}
 		}
 	}
 	#endregion
 
 	#region Construct Building
-    public void StartTimerForConstruction(){
-		countUp = true;
-    }
-
     public GameObject GetNextHiddenBuildPart(){
 		foreach(GameObject obj in hiddenBuildingParts){
 			if(!obj.GetComponent<HiddenBuildPart>().found){
@@ -273,18 +288,14 @@ public class Level : MonoBehaviour {
 		foundPart.GetComponent<HiddenBuildPart>().found = true;
 
 		// go through all the silhouettes and replace the one with matching name
-		foreach(GameObject obj in silhouettes){
-			if(obj.name == foundPart.name){
-				// replace with full sprite
-				obj.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 1);
-			}
-		}
+		main.ui.ColorizeConstructionPart (foundPart);
 
-		foundPart.GetComponent<HiddenBuildPart>().flyToDestination();
+		foundPart.GetComponent<HiddenBuildPart>().FlyToDestination();
 
 		// make it possible to start the construction
 		if(foundParts >= requiredParts){
 			isReadyToBuild = true;
+			arrow.enabled = true;
 			finger.begin(FingerController.Tempo.FAST);
 		}
     }
@@ -297,6 +308,7 @@ public class Level : MonoBehaviour {
 
     // TODO : animate the smoke
     public void AnimateSmoke(){
+		arrow.enabled = false;
 		smokeController.Begin();
     }
 

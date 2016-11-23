@@ -6,17 +6,14 @@ public class Main : MonoBehaviour {
 
 	public static Main instance;
 
-	[SerializeField] public GameObject uiObj; //set by inspector
+	[SerializeField] public GameObject uiObj; // set by inspector
 	[SerializeField] public GameObject[] levels;
 	[SerializeField] public Purchaser purchaser;
+	[HideInInspector] public SoundHandler soundHandler;
 
 	[HideInInspector] public GameObject levelObj = null;
 	[HideInInspector] public Level level = null;
 	[HideInInspector] public UI ui = null;
-
-	public void LoadWorldMap(){
-		SceneManager.LoadScene (0);
-	}
 
     public GameObject InstantiateLevel(int levelIndex) {        
 		levelObj = Instantiate(
@@ -42,5 +39,7 @@ public class Main : MonoBehaviour {
 		if(instance == null){
 			instance = this;
 		}
+
+		soundHandler = GameObject.FindGameObjectWithTag("SOUNDHANDLER").GetComponent<SoundHandler>();
 	}
 }

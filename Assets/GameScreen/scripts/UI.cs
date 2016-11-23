@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.UI;
+using System.Collections;
+using UnityEngine.SceneManagement;
 
 /** Could remove iapCanvas, it is not used since the shop was moved into the
 notebook
 */
 
 public class UI : MonoBehaviour {
-    public GameObject currentObjectivePanel; //set by inspector
+    //public GameObject currentObjectivePanel; //set by inspector
     public GameObject[] objectivePanels; //set by inspector
     public GameObject[] objectiveCheckmarkPanels; //set by inspector
     public GameObject hintNumber; //inspector
@@ -71,12 +72,14 @@ public class UI : MonoBehaviour {
 
     public Sprite done;
 
+	[SerializeField] private GameObject loadingAnimation;
+
+	public GameObject constructionPopup;
+
     private Main main = null;
 
     public void Finish(){
-      Color color = new Color(1, 1, 1, 1);
-      currentObjectivePanel.GetComponent<Image>().color = color;
-      currentObjectivePanel.GetComponent<Image>().sprite = done;
+		print ("UI, finished!");
     }
 
     public void ShowPopupObjectiveWithText(string text, Sprite img, string _secondText = null){
@@ -116,6 +119,46 @@ public class UI : MonoBehaviour {
     public void ShowMenu(bool show) {
 		ShowNotebook(NotebookMode.OPTIONS_TAB, show);
     }
+
+	#region Construction
+	Image[] constructionImageParts;
+	bool constructionPopupPopulated;
+	void SetupConstructionPopupImages () {
+		string levelName = main.level.name.Split('(')[0];
+		string path = "Images/" + levelName;
+		Sprite [] constructionPieceImages = Resources.LoadAll<Sprite> (path);
+
+		constructionImageParts = constructionPopup.GetComponentsInChildren<Image> ();
+		for (int x = 0; x < constructionPieceImages.Length; x++) {
+			// skip the first image in 'constructionImageParts' because it is the background
+			constructionImageParts[x + 1].color = new Color (1.0f, 1.0f, 1.0f, 0.3f);
+			constructionImageParts[x + 1].sprite = constructionPieceImages[x];
+		}
+
+		constructionPopupPopulated = true;
+	}
+
+	public void ShowConstructionPopup () {
+		if (!constructionPopupPopulated) {
+			SetupConstructionPopupImages ();
+		}
+		constructionPopup.SetActive (true);
+	}
+
+	public void HideConstructionPopup () {
+		constructionPopup.SetActive (false);
+	}
+
+	public void ColorizeConstructionPart (GameObject foundPart) {
+		string spriteName = foundPart.GetComponent<SpriteRenderer> ().sprite.name;
+		foreach (Image img in constructionImageParts) {
+			if (img.sprite.name == spriteName) {
+				img.color = new Color (1, 1, 1, 1);
+				break;
+			}
+		}
+	}
+	#endregion
 
 	#region Show Specific Menu
     public void ShowShop() {
@@ -201,6 +244,20 @@ public class UI : MonoBehaviour {
 		#if UNITY_EDITOR
 		ShowShop();
 		#endif
+	}
+
+	public void LoadWorldLevel () {
+		loadingAnimation.SetActive (true);
+		StartCoroutine (LoadWorldMap());
+	}
+
+	IEnumerator LoadWorldMap () {
+		yield return new WaitForSeconds (2.0f);
+
+		AsyncOperation asyncLoader = SceneManager.LoadSceneAsync ("WorldMap");
+		while (!asyncLoader.isDone) { 
+			yield return null;
+		}
 	}
 
 	// Use this for initialization

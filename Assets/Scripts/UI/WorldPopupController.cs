@@ -9,11 +9,18 @@ public class WorldPopupController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		SetupPopup ();
+		int completedLevels = Global.instance.completedLevels;
+		if (completedLevels <= 0) { // no levels completed
+			SetupPopup (GameConstants.POPUP_MESSAGE_WELCOME);
+		} else if (completedLevels >= 2) {
+			SetupPopup (GameConstants.POPUP_MESSAGE_GAME_DONE);
+		} else {
+			Dismiss ();
+		}
 	}
 
-	private void SetupPopup(){
-		myText.text = GameConstants.POPUP_MESSAGE_WELCOME;
+	private void SetupPopup(string message){
+		myText.text = message;
 		gameObject.SetActive(true);
 	}
 
